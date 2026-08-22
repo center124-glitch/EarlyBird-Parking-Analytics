@@ -36,7 +36,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-  body{ font-family:'Sarabun',sans-serif; line-height:1.7; background:#f6f7fb; color:#1f2937;
+  /* พื้นหลังไล่สีจากม่วงอ่อนลงมาเป็นเทาอ่อน — ช่วยให้แถบ KPI ด้านบนดูเชื่อมกับหัวแอป
+     และทำให้การ์ดสีพาสเทลไม่ลอยอยู่บนพื้นเทาแบน ๆ  ตรึงพื้นหลังไว้ (fixed) เพื่อไม่ให้
+     ไล่สีเลื่อนตามตอนสกรอลล์ ซึ่งจะดูวูบวาบบนมือถือ */
+  body{ font-family:'Sarabun',sans-serif; line-height:1.7; color:#1f2937;
+        background:#eef1f9;
+        background-image:linear-gradient(180deg,#e7e9fb 0%,#eef1f9 340px);
+        background-attachment:fixed;
         -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent;
         padding-bottom:env(safe-area-inset-bottom); }
   /* เผื่อพื้นที่รอยบากของ iPhone เมื่อเปิดแบบเต็มจอจากหน้าจอโฮม */
@@ -47,12 +53,14 @@
   input, select{ font-size:16px; }
   /* เลื่อนตารางแนวนอนให้ลื่นบนมือถือ */
   .scroll-x{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .card{ background:#fff; border-radius:1rem; box-shadow:0 2px 12px rgba(16,24,40,.06); }
+  /* เส้นขอบบาง ๆ ช่วยแยกการ์ดออกจากพื้นหลังที่ไม่ได้ขาวสนิทอีกต่อไป */
+  .card{ background:#fff; border-radius:1rem; border:1px solid #e9ecf5;
+         box-shadow:0 2px 12px rgba(16,24,40,.06); }
   /* การ์ดตัวเลขรอง (แถบคูปอง/ราคาตั๋ว) — ใส่พื้นอ่อนของสีตัวเอง ไม่ให้เป็นแถบขาวคั่นกลางจอ */
   .minicard{ border-radius:1rem; background:var(--kbg); border:1px solid var(--kbd);
         box-shadow:0 2px 10px rgba(16,24,40,.05); transition:transform .2s ease; }
   .minicard:hover{ transform:translateY(-2px); }
-  .minicard .klab{ color:#475569; } .minicard .kval{ color:var(--kc); } .minicard .kunit{ color:#64748b; }
+  .minicard .klab{ color:#334155; } .minicard .kval{ color:var(--kc); } .minicard .kunit{ color:#334155; opacity:.85; }
   /* โหมดมืด: การ์ดตัวเลขคงสีเดิมทั้งหมด ไม่กลับสีเป็นโทนเทา
      เหตุผล: การ์ดพวกนี้คือ "จุดโฟกัส" ของหน้าจอ ถ้ากลายเป็นสีเทาหมดในโหมดมืด
      หน้าจอจะทึบและอ่านยากกว่าโหมดสว่าง จึงปล่อยให้สว่างเป็นเกาะสีบนพื้นเข้มแทน */
@@ -69,7 +77,7 @@
   .kpi:hover{ transform:translateY(-3px); box-shadow:0 14px 28px rgba(16,24,40,.13); }
   /* วงกลมสีมุมขวาบน ให้การ์ดไม่แบนจนเกินไป — เพิ่มความทึบขึ้นเพื่อให้เห็นสีชัดจากระยะไกล */
   .kpi::before{ content:''; position:absolute; right:-28px; top:-32px; width:112px; height:112px;
-        border-radius:50%; background:var(--kc); opacity:.16; }
+        border-radius:50%; background:var(--kc); opacity:.20; }
   /* แถบสีประจำการ์ดด้านบน ทำให้รหัสสีอ่านออกทันทีแม้ยังไม่อ่านตัวเลข */
   .kpi{ border-top:3px solid var(--kc); }
   /* แถบแสงกวาดผ่านตอนเอาเมาส์ชี้ — ใช้ transform ล้วน จึงไม่กินแรงเครื่อง */
@@ -78,16 +86,16 @@
         transform:rotate(20deg) translateX(-250%); pointer-events:none; }
   .kpi:hover::after{ transform:rotate(20deg) translateX(430%); transition:transform .9s ease; }
   .kpi > *{ position:relative; z-index:1; }
-  .kpi .klab{ color:#475569; }
+  .kpi .klab{ color:#334155; }
   .kpi .kval{ color:var(--kc); }
-  .kpi .ksub{ color:#64748b; }
-  .kpi .kico{ color:var(--kc); opacity:.75; }
+  .kpi .ksub{ color:#334155; opacity:.85; }
+  .kpi .kico{ color:var(--kc); opacity:.85; }
   /* การ์ดปริมาณรถแยกประเภท ใช้ระบบสีเดียวกันเพื่อให้หน้าจอเป็นภาษาเดียว */
   .catcard{ position:relative; overflow:hidden; border-radius:.75rem;
         background:var(--kbg); border:1px solid var(--kbd);
         transition:transform .2s ease, box-shadow .2s ease; }
   .catcard:hover{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(16,24,40,.10); }
-  .catcard .klab{ color:#475569; } .catcard .kval{ color:var(--kc); } .catcard .ksub{ color:#64748b; }
+  .catcard .klab{ color:#334155; } .catcard .kval{ color:var(--kc); } .catcard .ksub{ color:#334155; opacity:.85; }
   /* โหมดมืด: คงรหัสสีไว้ที่ตัวเลข ส่วนพื้นเปลี่ยนเป็นโทนเข้มเพื่อไม่ให้จอสว่างจ้า */
   /* เงาเข้มขึ้นเล็กน้อยในโหมดมืด เพื่อให้การ์ดสีอ่อนไม่ดู "ลอย" อยู่บนพื้นดำ */
   html.dark .kpi, html.dark .catcard, html.dark .minicard{ box-shadow:0 4px 16px rgba(0,0,0,.45); }
@@ -97,7 +105,16 @@
         border-radius:99px; padding:0 20px; height:52px; color:#fff; font-weight:700;
         background:linear-gradient(135deg,#4F46E5,#C026D3);
         box-shadow:0 10px 26px rgba(79,70,229,.45); transition:transform .2s ease; }
-  .fab:hover{ transform:translateY(-2px) scale(1.03); }
+  .fab:hover{ transform:translateY(-2px) scale(1.03); box-shadow:0 14px 32px rgba(124,58,237,.55); }
+  .fab:active{ transform:translateY(0) scale(.97); }
+  /* จอแคบมาก (iPhone SE / Android เล็ก) — ย่อปุ่มลอยและตัวเลขไม่ให้ล้นการ์ด */
+  @media (max-width:380px){
+    .fab{ height:46px; padding:0 15px; font-size:13px; }
+    .kpi .kval{ font-size:20px !important; }
+    .catcard .kval{ font-size:17px !important; }
+  }
+  /* จอกว้าง — จำกัดความกว้างเนื้อหาไม่ให้การ์ดยืดจนอ่านยาก */
+  @media (min-width:1600px){ main{ max-width:1520px; } }
   .tabbtn{ transition:all .18s ease; min-height:32px; }
   /* ปุ่มขนาดเล็กในแถบตัวกรอง — ต้องเขียนทับ min-height 40px ของปุ่มทั่วไป
      ไม่เช่นนั้นกรอบตัวกรองจะสูงจนดูใหญ่กว่าการ์ด KPI ด้านล่าง */
@@ -220,8 +237,9 @@
   }
 
   /* ---------- โหมดมืด : เขียนทับเฉพาะคลาสที่ใช้จริง เพื่อไม่ต้องแก้ HTML ทุกจุด ---------- */
-  html.dark body{ background:#0f172a; color:#e2e8f0; }
-  html.dark .card{ background:#1e293b; box-shadow:0 2px 12px rgba(0,0,0,.35); }
+  html.dark body{ color:#e2e8f0; background:#0f172a;
+        background-image:linear-gradient(180deg,#1e1b4b 0%,#0f172a 340px); }
+  html.dark .card{ background:#1e293b; border-color:#334155; box-shadow:0 2px 12px rgba(0,0,0,.35); }
   html.dark .bg-gray-100{ background:#334155 !important; }
   html.dark .bg-gray-50{ background:#0f172a !important; }
   html.dark .bg-white{ background:#1e293b !important; }
@@ -331,27 +349,27 @@
          เพราะเดิมซ่อนอยู่เป็นบรรทัดเล็กใต้การ์ดเงินสด ทำให้ต้องเพ่งอ่าน
          การ์ดใบสุดท้ายกินสองช่องบนมือถือ เพื่อไม่ให้เหลือช่องว่างข้างเดียว -->
     <section class="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
-      <div class="kpi p-3 sm:p-3.5" style="--kbg:linear-gradient(135deg,#E0E7FF,#C7D2FE);--kbd:#A5B4FC;--kc:#3730A3">
+      <div class="kpi p-3 sm:p-3.5" style="--kbg:linear-gradient(135deg,#C7D2FE,#A5B4FC);--kbd:#818CF8;--kc:#312E81">
         <div class="flex items-center justify-between gap-1"><span class="klab text-[11px] font-semibold">รถเข้าโดยรวม</span><i class="kico fa-solid fa-car-side text-base"></i></div>
         <p class="kval text-[22px] sm:text-[26px] font-extrabold leading-tight mt-0.5"><span id="kpiTotal">0</span> <span class="text-xs sm:text-sm font-medium opacity-70">คัน</span></p>
         <p id="kpiAvg" class="ksub text-[10.5px] leading-tight">-</p>
       </div>
-      <div class="kpi p-3 sm:p-3.5" style="--kbg:linear-gradient(135deg,#E0F2FE,#BAE6FD);--kbd:#7DD3FC;--kc:#075985">
+      <div class="kpi p-3 sm:p-3.5" style="--kbg:linear-gradient(135deg,#BAE6FD,#7DD3FC);--kbd:#38BDF8;--kc:#0C4A6E">
         <div class="flex items-center justify-between gap-1"><span class="klab text-[11px] font-semibold">คูปองที่จำหน่าย</span><i class="kico fa-solid fa-ticket text-base"></i></div>
         <p class="kval text-[22px] sm:text-[26px] font-extrabold leading-tight mt-0.5"><span id="kpiCoupon">0</span> <span class="text-xs sm:text-sm font-medium opacity-70">ใบ</span></p>
         <p id="kpiCouponRange" class="ksub text-[10.5px] leading-tight">-</p>
       </div>
-      <div class="kpi p-3 sm:p-3.5" style="--kbg:linear-gradient(135deg,#D1FAE5,#A7F3D0);--kbd:#6EE7B7;--kc:#065F46">
+      <div class="kpi p-3 sm:p-3.5" style="--kbg:linear-gradient(135deg,#A7F3D0,#6EE7B7);--kbd:#34D399;--kc:#064E3B">
         <div class="flex items-center justify-between gap-1"><span class="klab text-[11px] font-semibold">ยอดรับเงินสด</span><i class="kico fa-solid fa-money-bill-wave text-base"></i></div>
         <p class="kval text-[22px] sm:text-[26px] font-extrabold leading-tight mt-0.5"><span id="kpiCash">0</span> <span class="text-xs sm:text-sm font-medium opacity-70">บาท</span></p>
         <p id="kpiCashSub" class="ksub text-[10.5px] leading-tight">-</p>
       </div>
-      <div class="kpi p-3 sm:p-3.5" style="--kbg:linear-gradient(135deg,#F3E8FF,#E9D5FF);--kbd:#D8B4FE;--kc:#6B21A8">
+      <div class="kpi p-3 sm:p-3.5" style="--kbg:linear-gradient(135deg,#E9D5FF,#D8B4FE);--kbd:#C084FC;--kc:#581C87">
         <div class="flex items-center justify-between gap-1"><span class="klab text-[11px] font-semibold">ยอดรับเงินโอน</span><i class="kico fa-solid fa-money-bill-transfer text-base"></i></div>
         <p class="kval text-[22px] sm:text-[26px] font-extrabold leading-tight mt-0.5"><span id="kpiTransfer">0</span> <span class="text-xs sm:text-sm font-medium opacity-70">บาท</span></p>
         <p id="kpiTransferSub" class="ksub text-[10.5px] leading-tight">-</p>
       </div>
-      <div class="kpi p-3 sm:p-3.5 col-span-2 lg:col-span-1" style="--kbg:linear-gradient(135deg,#FFEDD5,#FED7AA);--kbd:#FDBA74;--kc:#9A3412">
+      <div class="kpi p-3 sm:p-3.5 col-span-2 lg:col-span-1" style="--kbg:linear-gradient(135deg,#FED7AA,#FDBA74);--kbd:#FB923C;--kc:#7C2D12">
         <div class="flex items-center justify-between gap-1"><span class="klab text-[11px] font-semibold">รวมยอดเงินนำส่ง</span><i class="kico fa-solid fa-sack-dollar text-base"></i></div>
         <p class="kval text-[22px] sm:text-[26px] font-extrabold leading-tight mt-0.5"><span id="kpiSum">0</span> <span class="text-xs sm:text-sm font-medium opacity-70">บาท</span></p>
         <p id="kpiDays" class="ksub text-[10.5px] leading-tight">-</p>
@@ -360,17 +378,17 @@
 
     <!-- แถบข้อมูลคูปองเพิ่มเติม — ย่อความสูงลงให้เป็นแถบรอง ไม่แย่งความสนใจจาก KPI หลัก -->
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
-      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(135deg,#FFE4E6,#FECDD3);--kbd:#FDA4AF;--kc:#BE123C"><p class="klab text-[10.5px] font-semibold leading-tight">ยกเลิกคูปอง</p><p class="kval text-lg font-bold leading-tight"><span id="kpiCancel">0</span> <span class="kunit text-[11px] font-medium">ใบ</span></p></div>
-      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(135deg,#FEF3C7,#FDE68A);--kbd:#FCD34D;--kc:#B45309"><p class="klab text-[10.5px] font-semibold leading-tight">ราคาตั๋ว</p><p class="kval text-lg font-bold leading-tight"><span id="kpiPrice">-</span> <span class="kunit text-[11px] font-medium">บาท/ใบ</span></p></div>
-      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(135deg,#CFFAFE,#A5F3FC);--kbd:#67E8F9;--kc:#0E7490"><p class="klab text-[10.5px] font-semibold leading-tight">สัดส่วนลูกค้าทั่วไปที่ซื้อคูปอง</p><p class="kval text-lg font-bold leading-tight"><span id="kpiRatio">-</span></p></div>
-      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(135deg,#D1FAE5,#A7F3D0);--kbd:#6EE7B7;--kc:#047857"><p class="klab text-[10.5px] font-semibold leading-tight">เฉลี่ยเงินนำส่ง/วัน</p><p class="kval text-lg font-bold leading-tight"><span id="kpiAvgMoney">0</span> <span class="kunit text-[11px] font-medium">บาท</span></p></div>
+      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(135deg,#FECDD3,#FDA4AF);--kbd:#FB7185;--kc:#881337"><p class="klab text-[10.5px] font-semibold leading-tight">ยกเลิกคูปอง</p><p class="kval text-lg font-bold leading-tight"><span id="kpiCancel">0</span> <span class="kunit text-[11px] font-medium">ใบ</span></p></div>
+      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(135deg,#FDE68A,#FCD34D);--kbd:#FBBF24;--kc:#92400E"><p class="klab text-[10.5px] font-semibold leading-tight">ราคาตั๋ว</p><p class="kval text-lg font-bold leading-tight"><span id="kpiPrice">-</span> <span class="kunit text-[11px] font-medium">บาท/ใบ</span></p></div>
+      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(135deg,#A5F3FC,#67E8F9);--kbd:#22D3EE;--kc:#155E75"><p class="klab text-[10.5px] font-semibold leading-tight">สัดส่วนลูกค้าทั่วไปที่ซื้อคูปอง</p><p class="kval text-lg font-bold leading-tight"><span id="kpiRatio">-</span></p></div>
+      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(135deg,#A7F3D0,#6EE7B7);--kbd:#34D399;--kc:#065F46"><p class="klab text-[10.5px] font-semibold leading-tight">เฉลี่ยเงินนำส่ง/วัน</p><p class="kval text-lg font-bold leading-tight"><span id="kpiAvgMoney">0</span> <span class="kunit text-[11px] font-medium">บาท</span></p></div>
     </section>
 
     <!-- แผงตรวจทานยอด : กระทบยอด 4 จุดที่คนตรวจเอกสารต้องเช็กด้วยมือทุกวัน
          (รวมคัน / ช่วงเลขคูปอง / เงินสด+โอน / คูปอง x ราคาตั๋ว) -->
     <section class="card p-3 sm:p-4">
       <h2 class="font-bold text-gray-700 text-sm sm:text-base mb-2"><i class="fa-solid fa-clipboard-check text-indigo-500 mr-1"></i> ผลตรวจทานความถูกต้องของยอด</h2>
-      <div id="checkList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2"></div>
+      <div id="checkList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2"></div>
     </section>
 
     <section class="card p-3 sm:p-4">
@@ -431,7 +449,7 @@
 <button id="btnEntry" class="fab no-print"><i class="fa-solid fa-pen-to-square mr-2"></i>บันทึกข้อมูล</button>
 
 <footer class="text-center text-xs text-gray-400 py-6">
-  EarlyBird Parking Analytics v15 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
+  EarlyBird Parking Analytics v18 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
 </footer>
 
 <div id="docModal" class="hidden fixed inset-0 bg-black/60 z-50 overflow-auto p-4">
@@ -566,7 +584,7 @@
 
 <script>
 /* ==========================================================================
-   EarlyBird Parking Analytics v15.0
+   EarlyBird Parking Analytics v18.0
    ระบบวิเคราะห์ยอดรถเข้าจอดก่อนเวลาศูนย์การค้าเปิดทำการ
    v10: การ์ดสรุป LINE เต็มขอบไม่มีแถบขาวข้าง + ดึงชื่อผู้บันทึกจากชีต + เปลี่ยนชื่อหัวใบรายงานแบบเต็ม
    v11: - ย่อกรอบตัวกรองให้เป็นแถบเดียว ไม่ให้ดูใหญ่กว่าการ์ด KPI
@@ -588,7 +606,29 @@
         - แถบตัวเลขรอง (ยกเลิกคูปอง/ราคาตั๋ว/สัดส่วน/เฉลี่ย) เปลี่ยนจากการ์ดขาวเป็นการ์ดมีสี
    v15: - โหมดมืดใช้สีการ์ดสดใสชุดเดียวกับโหมดสว่าง (เดิมกลับเป็นโทนเทาทั้งหมด)
         - ลบแถบสีด้านซ้ายของการ์ด "ปริมาณรถแยกตามประเภท" ออกทั้งสองโหมด
-        - เปลี่ยน Sheet ID และ Web App URL เป็นชุดใหม่ 
+        - เปลี่ยน Sheet ID และ Web App URL เป็นชุดใหม่
+   v16: (รอบตรวจสอบคุณภาพโค้ด)
+        [แก้บั๊ก]   ราคาตั๋วหลายราคาในช่วงเดียวทำให้ข้อตรวจทานที่ 4 เตือนผิด -> ตรวจพบและข้ามให้
+        [แก้บั๊ก]   ข้อตรวจทานในฟอร์มอ้างด้วยลำดับ (slice(1)) -> เปลี่ยนเป็นอ้างด้วย id
+        [แก้บั๊ก]   safe() ดักเฉพาะ error แบบ sync -> รองรับ async ที่ reject ด้วย
+        [ความเร็ว]  เพิ่มดัชนี Map ค้นแถวตามวัน แทน Array.find() ที่เป็น O(n)
+        [ความเร็ว]  แคชผล filteredRows()/aggregate() ต่อหนึ่งช่วง (เดิมคำนวณซ้ำ 3-4 รอบ)
+        [ความเร็ว]  กราฟอัปเดตข้อมูลในที่เดิม แทนการ destroy+new ทุกครั้ง
+        [ความปลอดภัย] escape ข้อความจากชีต/ข้อความ error ก่อนต่อกับ innerHTML (กัน Stored XSS)
+        [ความปลอดภัย] ฝั่ง Apps Script ต้องมี token จึงจะเขียนข้อมูลได้ + ตรวจค่าก่อนเขียน
+        [กันพัง]    document.fonts, รหัสสีผิดรูป, และการวาดกราฟ ถูกครอบ try/catch
+   v17: - เพิ่มความเข้มสีการ์ดทั้งหมดอีกราว 15% (พื้นขยับจากระดับ 100-200 เป็น 200-300)
+          พร้อมตรวจอัตราคอนทราสต์ WCAG AA ผ่านครบทุกคู่สี (16/16)
+        - แยกสี ink (ตัวเลขบนการ์ด) ออกจาก color (กราฟ) เพื่อให้กราฟยังสดแต่ตัวเลขอ่านสบาย
+        - พื้นหลังหน้าจอเป็นไล่สีแทนสีเทาแบน ทั้งโหมดสว่างและมืด
+        - เพิ่มการเทียบกับช่วงเดียวกันของปีก่อน (โหมดรายเดือน/รายปี) บนการ์ด KPI และกราฟ
+        - ปรับให้แสดงผลดีขึ้นบนจอแคบ (<=380px) และจอกว้าง (>=1600px)
+   v18: (รอบตรวจความแม่นยำของการกระทบยอด)
+        [แก้บั๊กสำคัญ] ข้อตรวจ "เงินสด+เงินโอน" เดิมเทียบกับยอดที่คำนวณจากตัวมันเอง จึงผ่านเสมอ
+                       -> เปลี่ยนไปเทียบกับคอลัมน์ "รวมยอดเงินส่ง" ที่ชีตกรอกไว้เอง
+        [แก้บั๊กสำคัญ] ถ้าชีตกรอกเลขคูปองมาตัวเดียว ระบบเดาปลายช่วงแล้วเอาไปตรวจกับตัวเอง จึงผ่านเสมอ
+                       -> ทำเครื่องหมาย derived และรายงานว่า "ตรวจยันกันไม่ได้"
+        [เพิ่ม] ข้อตรวจที่ 5 : เลขคูปองขาดช่วง (จับวันที่ลืมบันทึก/คูปองสูญหาย) 
    ========================================================================== */
 
 /* ---------------------- 1) CONFIG ---------------------- */
@@ -630,7 +670,12 @@ const CONFIG = {
   SOURCE   : 'gas',
   GAS_URL  : 'https://script.google.com/macros/s/AKfycbwVDNUCGGTEdUK8-Ct2zF-qv6y0zTjKrG84pKEoGewnkPbkVlnuXrYC2DEf0joTaI1q/exec',
   SHEET_ID : '1O5oW158xCLZRgwsHDJtOvxYrLiZlspbinvQP2I1LWiU',
-  SHEET_NAME: '',
+  /* ความลับร่วมสำหรับ "การบันทึกข้อมูล" ต้องตรงกับ WRITE_TOKEN ใน Code.gs
+     ทำหน้าที่กันคนนอกที่ได้ URL ของ Web App ไปแล้วยิงเขียนทับข้อมูลในชีต
+     ไม่ใช่ระบบล็อกอิน (ค่านี้อยู่ในไฟล์ HTML จึงเปิดดูได้) แต่ยกระดับจาก
+     "ใครก็เขียนได้ถ้ารู้ URL" เป็น "ต้องได้ไฟล์แอปไปด้วย" — เปลี่ยนเป็นค่าสุ่มของคุณเองก่อนใช้จริง */
+  WRITE_TOKEN : 'EBP-SBK-2569-CHANGE-21',
+  SHEET_NAME: '2026',
   DEPT     : 'แผนกลานจอดรถและจราจร',
   ORG      : 'ศูนย์การค้าซีคอนบางแค'
 };
@@ -673,13 +718,15 @@ function exportFileName(title){
 --------------------------------------------------------------------------- */
 /* color = สีเข้มใช้กับตัวเลข/กราฟ, soft = พื้นการ์ดโทนอ่อน, line = สีเส้นขอบ
    ทั้ง 3 ค่าอิงจากสีเดียวกัน ทำให้การ์ด กราฟ และการ์ด LINE ใช้รหัสสีชุดเดียวกันทั้งระบบ */
+/* color = สีเข้มใช้กับตัวเลขและกราฟ | soft/soft2 = ไล่สีพื้นการ์ด | line = สีขอบ
+   ทั้งหมดอิงจากสีเดียวกัน การ์ด กราฟโดนัท และการ์ด LINE จึงใช้รหัสสีชุดเดียวทั้งระบบ */
 const CATS = [
-  { key:'vip',     label:'VIP Seacon',     short:'VIP',      color:'#6D28D9', soft:'#EDE9FE', soft2:'#DDD6FE', line:'#C4B5FD', dark:'#C4B5FD' },
-  { key:'monthly', label:'ลูกค้ารายเดือน',  short:'รายเดือน', color:'#0369A1', soft:'#E0F2FE', soft2:'#BAE6FD', line:'#7DD3FC', dark:'#7DD3FC' },
-  { key:'shop',    label:'พนักงานร้านค้า',  short:'ร้านค้า',  color:'#B45309', soft:'#FEF3C7', soft2:'#FDE68A', line:'#FCD34D', dark:'#FCD34D' },
-  { key:'staff',   label:'พนักงาน Seacon', short:'พนักงาน',  color:'#047857', soft:'#D1FAE5', soft2:'#A7F3D0', line:'#6EE7B7', dark:'#6EE7B7' },
-  { key:'revenue', label:'สรรพากร',         short:'สรรพากร',  color:'#BE123C', soft:'#FFE4E6', soft2:'#FECDD3', line:'#FDA4AF', dark:'#FDA4AF' },
-  { key:'general', label:'ลูกค้าทั่วไป',     short:'ทั่วไป',   color:'#0F766E', soft:'#CCFBF1', soft2:'#99F6E4', line:'#5EEAD4', dark:'#5EEAD4' }
+  { key:'vip',     label:'VIP Seacon',     short:'VIP',      color:'#7C3AED', ink:'#5B21B6', soft:'#DDD6FE', soft2:'#C4B5FD', line:'#A78BFA', dark:'#C4B5FD' },
+  { key:'monthly', label:'ลูกค้ารายเดือน',  short:'รายเดือน', color:'#0284C7', ink:'#075985', soft:'#BAE6FD', soft2:'#7DD3FC', line:'#38BDF8', dark:'#7DD3FC' },
+  { key:'shop',    label:'พนักงานร้านค้า',  short:'ร้านค้า',  color:'#D97706', ink:'#92400E', soft:'#FDE68A', soft2:'#FCD34D', line:'#FBBF24', dark:'#FCD34D' },
+  { key:'staff',   label:'พนักงาน Seacon', short:'พนักงาน',  color:'#059669', ink:'#065F46', soft:'#A7F3D0', soft2:'#6EE7B7', line:'#34D399', dark:'#6EE7B7' },
+  { key:'revenue', label:'สรรพากร',         short:'สรรพากร',  color:'#E11D48', ink:'#881337', soft:'#FECDD3', soft2:'#FDA4AF', line:'#FB7185', dark:'#FDA4AF' },
+  { key:'general', label:'ลูกค้าทั่วไป',     short:'ทั่วไป',   color:'#0D9488', ink:'#115E59', soft:'#99F6E4', soft2:'#5EEAD4', line:'#2DD4BF', dark:'#5EEAD4' }
 ];
 
 /* ลำดับการจับคู่คอลัมน์ (เฉพาะเจาะจงก่อนเสมอ) */
@@ -708,7 +755,11 @@ const TH_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.
 const TH_DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 
 /* ---------------------- 3) State ---------------------- */
-const S = { rows:[], mode:'daily', anchor:new Date(), isDemo:false, mapText:'', raw:null, source:'',
+/* byKey  = ดัชนี key(YYYY-MM-DD) -> row  ใช้แทนการ S.rows.find() ซึ่งเป็น O(n) ทุกครั้ง
+   version = เลขรุ่นของชุดข้อมูล ใช้ล้างแคชอัตโนมัติเมื่อโหลดข้อมูลใหม่
+   cache   = ผลของ filteredRows()/aggregate() ของช่วงที่กำลังดูอยู่ */
+const S = { rows:[], byKey:new Map(), version:0, cache:null,
+            mode:'daily', anchor:new Date(), isDemo:false, mapText:'', raw:null, source:'',
             docType:'full', loading:false, warnings:[], locked:true, idleTimer:null, hiddenAt:0, truncated:false,
             dark: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
             charts:{trend:null,pie:null} };
@@ -723,6 +774,19 @@ const pad2 = (n) => String(n).padStart(2,'0');
    ป้องกันหน้าจอค้าง/ขาวเมื่อเกิด error ที่ไม่ได้คาดไว้
    และเก็บ log ไว้ให้ดูย้อนหลังได้ในหน้าตรวจสอบ (ปุ่มหูฟัง) */
 const LOG = [];
+/**
+ * แปลงอักขระพิเศษของ HTML ก่อนนำข้อความไปต่อกับ innerHTML
+ * ทำไมต้องมี: ข้อมูลในชีต (หมายเหตุ, ชื่อผู้บันทึก, ชื่อหัวคอลัมน์) และข้อความ error
+ * เป็นข้อความที่ "คนอื่นเขียน" ถ้ามีคนพิมพ์ <img src=x onerror=...> ลงในชีต
+ * แล้วเราต่อสตริงตรง ๆ สคริปต์นั้นจะรันในเบราว์เซอร์ของทุกคนที่เปิดแดชบอร์ด (Stored XSS)
+ * กฎที่ใช้ทั้งไฟล์: ตัวเลขที่ผ่าน nf() ปลอดภัยอยู่แล้ว ส่วนสตริงจากชีตต้องผ่าน esc() เสมอ
+ */
+function esc(v){
+  return String(v === null || v === undefined ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function logError(where, err){
   const msg = (err && err.message) ? err.message : String(err);
   LOG.push({ t:new Date(), where, msg });
@@ -738,10 +802,23 @@ window.addEventListener('unhandledrejection', (e) => {
 });
 
 /** ครอบฟังก์ชันที่ผูกกับปุ่ม เพื่อไม่ให้ error จุดเดียวทำให้ทั้งหน้าใช้ไม่ได้ */
+/**
+ * ห่อ event handler ไม่ให้ข้อผิดพลาดเดียวทำให้ทั้งหน้าค้าง
+ * แก้จากเดิม: try/catch ธรรมดาดักได้เฉพาะข้อผิดพลาดแบบ synchronous
+ * ถ้า fn เป็น async function ที่ reject จะกลายเป็น unhandled rejection และผู้ใช้ไม่เห็นข้อความใด ๆ
+ * จึงต้องตรวจว่าค่าที่คืนมาเป็น thenable แล้วต่อ .catch ให้ด้วย
+ */
 function safe(name, fn){
+  const fail = (err) => {
+    logError(name, err);
+    toast('ทำรายการไม่สำเร็จ: ' + ((err && err.message) || 'ไม่ทราบสาเหตุ'), 'error');
+  };
   return function(){
-    try{ return fn.apply(this, arguments); }
-    catch(err){ logError(name, err); toast('ทำรายการไม่สำเร็จ: ' + (err.message || 'ไม่ทราบสาเหตุ'), 'error'); }
+    try{
+      const out = fn.apply(this, arguments);
+      if (out && typeof out.then === 'function') return out.catch(fail);
+      return out;
+    }catch(err){ fail(err); }
   };
 }
 
@@ -972,14 +1049,22 @@ function parseDate(v){
 }
 
 /** แปลงคอลัมน์ "เลขที่คูปอง" ที่มักเขียนเป็นช่วง เช่น 100001-100250 หรือ 100001 ถึง 100250 */
+/**
+ * แยกเลขที่คูปองเริ่ม-สิ้นสุดจากข้อความในชีต (เช่น "39117-39353")
+ * derived = true หมายถึงชีตกรอกมาเลขเดียว ระบบจึงคำนวณปลายช่วงให้จาก "จำนวนคูปอง"
+ * ต้องทำเครื่องหมายไว้ เพราะถ้าไม่แยกแยะ ข้อตรวจทาน "จำนวนคูปอง = ช่วงเลขที่คูปอง"
+ * จะเอาค่าที่คำนวณมาจากจำนวนคูปอง ไปเทียบกับจำนวนคูปองเอง แล้วผ่านทุกครั้งโดยไม่ได้ตรวจอะไรเลย
+ * (false OK ซึ่งอันตรายกว่าการเตือนผิด เพราะทำให้เชื่อว่าตรวจแล้ว)
+ */
 function parseCouponNo(v, count){
   const s = String(v || '').replace(/,/g,'');
   const nums = s.match(/\d+/g);
-  if (!nums || !nums.length) return { start:0, end:0 };
+  if (!nums || !nums.length) return { start:0, end:0, derived:false };
   const start = +nums[0];
-  let end = nums.length > 1 ? +nums[nums.length-1] : (count > 0 ? start + count - 1 : start);
+  const hasEnd = nums.length > 1;
+  let end = hasEnd ? +nums[nums.length-1] : (count > 0 ? start + count - 1 : start);
   if (end < start) end = start;
-  return { start, end };
+  return { start, end, derived: !hasEnd };
 }
 
 function normalize(rawHeader, rawData){
@@ -1026,14 +1111,18 @@ function normalize(rawHeader, rawData){
     o.price    = idx.price    >= 0 ? num(r[idx.price])    : 0;
     o.cash     = idx.cash     >= 0 ? num(r[idx.cash])     : 0;
     o.transfer = idx.transfer >= 0 ? num(r[idx.transfer]) : 0;
-    const moneyCol = idx.moneyCol >= 0 ? num(r[idx.moneyCol]) : 0;
-    o.money    = (o.cash + o.transfer) > 0 ? (o.cash + o.transfer) : moneyCol;
-    o.moneyOnly = (o.cash + o.transfer) === 0 && moneyCol > 0;
+    // เก็บยอดรวมที่ "ชีตกรอกไว้เอง" แยกจากยอดที่ระบบคำนวณ (เงินสด+เงินโอน)
+    // ถ้าไม่แยกกัน ข้อตรวจทาน "เงินสด + เงินโอน = ยอดนำส่ง" จะกลายเป็นการเทียบตัวเองกับตัวเอง
+    // แล้วผ่านเสมอ — วันที่ลืมกรอกเงินโอนจะหลุดไปโดยไม่มีใครรู้ และยอดในรายงานจะขาดไปเงียบ ๆ
+    o.moneyCol = idx.moneyCol >= 0 ? num(r[idx.moneyCol]) : 0;
+    o.money    = (o.cash + o.transfer) > 0 ? (o.cash + o.transfer) : o.moneyCol;
+    o.moneyOnly = (o.cash + o.transfer) === 0 && o.moneyCol > 0;
     o.note     = idx.note >= 0 ? String(r[idx.note] || '').trim() : '';
     o.recorder = idx.recorder >= 0 ? String(r[idx.recorder] || '').trim() : '';
 
     const cn = parseCouponNo(idx.couponNo >= 0 ? r[idx.couponNo] : '', o.coupon);
     o.cStart = cn.start; o.cEnd = cn.end;
+    o.rangeDerived = cn.derived;      // ปลายช่วงถูกเดา ไม่ใช่ค่าที่เจ้าหน้าที่กรอกจริง
     // เก็บเป็นรายการช่วง เพื่อให้การรวมแถวซ้ำ/รวมหลายวันไม่ทำให้ช่วงกว้างเกินจริง
     o.ranges = cn.start > 0 ? [{ s:cn.start, e:cn.end }] : [];
 
@@ -1052,6 +1141,8 @@ function normalize(rawHeader, rawData){
     CATS.forEach(c => prev[c.key] += r[c.key]);
     prev.total += r.total; prev.coupon += r.coupon; prev.cancel += r.cancel;
     prev.cash += r.cash; prev.transfer += r.transfer; prev.money += r.money;
+    prev.moneyCol += r.moneyCol;
+    if (r.rangeDerived) prev.rangeDerived = true;
     prev.ranges = prev.ranges.concat(r.ranges);     // ต่อรายการช่วง ไม่ใช่ยุบเป็น min-max
     if (r.cStart > 0){ prev.cStart = prev.cStart > 0 ? Math.min(prev.cStart, r.cStart) : r.cStart; }
     if (r.cEnd > 0) prev.cEnd = Math.max(prev.cEnd, r.cEnd);
@@ -1108,6 +1199,7 @@ function demoRows(){
     o.cash    = Math.round(o.coupon * 0.75) * 20;
     o.transfer= (o.coupon - Math.round(o.coupon * 0.75)) * 20;
     o.money   = o.cash + o.transfer;
+    o.moneyCol = o.money; o.rangeDerived = false;
     rows.push(o);
   }
   return rows;
@@ -1135,15 +1227,76 @@ function periodTextShort(){
   if (S.mode === 'monthly') return TH_MONTHS[r.from.getMonth()] + ' ' + be(r.from.getFullYear());
   return 'ปี ' + be(r.from.getFullYear());
 }
+/** สร้างดัชนีค้นหาตามวัน — เรียกครั้งเดียวหลังโหลด/แปลงข้อมูลเสร็จ */
+function reindexRows(){
+  S.byKey = new Map();
+  S.rows.forEach(r => S.byKey.set(r.key, r));
+  S.version++;      // ทำให้แคชของช่วงเดิมถือว่าหมดอายุทันที
+  S.cache = null;
+}
+
+/** ค้นแถวตามวัน — O(1) แทนการไล่ทั้งอาร์เรย์ */
+function rowByDate(d){
+  return d ? (S.byKey.get(ymd(d)) || null) : null;
+}
+
 function filteredRows(){
   const r = currentRange();
   const f = r.from.getTime();
   const t = new Date(r.to.getFullYear(), r.to.getMonth(), r.to.getDate(), 23,59,59).getTime();
   return S.rows.filter(x => x.date.getTime() >= f && x.date.getTime() <= t);
 }
+
+/**
+ * คืนทั้งแถวที่กรองแล้วและผลสรุปของช่วงที่กำลังดูอยู่ พร้อมแคชผลไว้
+ * เหตุผล: ในหนึ่งการกดปุ่ม ฟังก์ชัน filteredRows()+aggregate() ถูกเรียกซ้ำ 3-4 รอบ
+ * (render, การ์ด LINE, ข้อความ LINE, เอกสาร) ทั้งที่ผลลัพธ์เหมือนกันทุกครั้ง
+ * แคชจะถูกทิ้งเองเมื่อเปลี่ยนโหมด/วันที่ หรือโหลดข้อมูลชุดใหม่
+ */
+/**
+ * ช่วงเดียวกันของ "ปีก่อนหน้า"
+ * เขียนแยกตามโหมดแทนการลบปีออกจากวันที่ตรง ๆ เพราะ new Date(y-1, 1, 29) ของปีอธิกสุรทิน
+ * จะเลื่อนไปเป็น 1 มี.ค. เองเงียบ ๆ ทำให้ช่วงเทียบคลาดไปหนึ่งวัน
+ */
+function prevYearRange(){
+  const a = S.anchor, y = a.getFullYear() - 1;
+  if (S.mode === 'yearly')  return { from:new Date(y,0,1), to:new Date(y,11,31) };
+  if (S.mode === 'monthly') return { from:new Date(y,a.getMonth(),1), to:new Date(y,a.getMonth()+1,0) };
+  return null;   // รายวัน/รายสัปดาห์ ช่วงสั้นเกินกว่าจะเทียบข้ามปีแล้วมีความหมาย
+}
+
+/** ผลสรุปของช่วงเดียวกันปีก่อน — คืน null ถ้าปีก่อนยังไม่มีข้อมูลในชีต */
+function prevYearAgg(){
+  const r = prevYearRange();
+  if (!r) return null;
+  const f = r.from.getTime();
+  const t = new Date(r.to.getFullYear(), r.to.getMonth(), r.to.getDate(), 23,59,59).getTime();
+  const rows = S.rows.filter(x => x.date.getTime() >= f && x.date.getTime() <= t);
+  if (!rows.some(x => x.hasData)) return null;
+  return aggregate(rows);
+}
+
+/** ข้อความเทียบปีก่อน เช่น " • เทียบปีก่อน +12.3%" — คืนค่าว่างถ้าเทียบไม่ได้ */
+function yoyText(now, before){
+  if (!before || before <= 0) return '';
+  const diff = ((now - before) / before) * 100;
+  const sign = diff > 0 ? '+' : (diff < 0 ? '−' : '±');
+  return ' • เทียบปีก่อน ' + sign + Math.abs(diff).toFixed(1) + '%';
+}
+
+function currentView(){
+  const key = S.mode + '|' + ymd(S.anchor) + '|' + S.version;
+  if (S.cache && S.cache.key === key) return S.cache;
+  const rows = filteredRows();
+  S.cache = { key, rows, agg: aggregate(rows) };
+  return S.cache;
+}
 function aggregate(rows){
   const a = { total:0, coupon:0, cancel:0, cash:0, transfer:0, money:0,
-              days:0, daysAll:rows.length, cStart:0, cEnd:0, price:0, diff:0, ranges:[], moneyOnly:false };
+              days:0, daysAll:rows.length, cStart:0, cEnd:0, price:0, diff:0, ranges:[],
+              moneyOnly:false, priceMixed:false,
+              moneyCol:0, hasMoneyCol:false, rangeDerived:false, gaps:0, gapCount:0 };
+  const priceSet = new Set();
   CATS.forEach(c => a[c.key] = 0);
 
   const spans = [];
@@ -1151,9 +1304,11 @@ function aggregate(rows){
     CATS.forEach(c => a[c.key] += r[c.key]);
     a.total += r.total; a.coupon += r.coupon; a.cancel += r.cancel;
     a.cash += r.cash; a.transfer += r.transfer; a.money += r.money;
+    if (r.moneyCol > 0){ a.moneyCol += r.moneyCol; a.hasMoneyCol = true; }
+    if (r.rangeDerived) a.rangeDerived = true;
     a.diff += Math.abs(r.diff);
     if (r.hasData) a.days++;                                  // หารเฉลี่ยด้วยเฉพาะวันที่มีข้อมูลจริง
-    if (r.price > 0) a.price = r.price;
+    if (r.price > 0){ a.price = r.price; priceSet.add(r.price); }
     if (r.moneyOnly) a.moneyOnly = true;   // วันที่กรอกเฉพาะยอดรวม ไม่ได้แยกเงินสด/โอน
     (r.ranges || []).forEach(sp => spans.push({ s:sp.s, e:sp.e }));
   });
@@ -1168,6 +1323,15 @@ function aggregate(rows){
     else a.ranges.push({ s:sp.s, e:sp.e });
   });
   if (a.ranges.length){ a.cStart = a.ranges[0].s; a.cEnd = a.ranges[a.ranges.length - 1].e; }
+  // ถ้าในช่วงที่รายงานมีราคาตั๋วมากกว่าหนึ่งราคา (เช่นปรับราคากลางเดือน)
+  // การเอา "ราคาล่าสุด × คูปองทั้งช่วง" ไปเทียบกับยอดเงินจะไม่มีทางตรง และจะเตือนผิดทุกครั้ง
+  a.priceMixed = priceSet.size > 1;
+
+  // เลขคูปองที่ "ขาดหาย" ระหว่างช่วง — เกิดเมื่อเลขไม่ต่อเนื่องกันข้ามวัน
+  // เช่น วันหนึ่งจบที่ 39353 แต่วันถัดไปเริ่มที่ 39400 แปลว่ามีคูปอง 46 ใบที่ไม่มีใครรายงาน
+  // เป็นสัญญาณของการลืมบันทึกทั้งวัน หรือคูปองสูญหาย ซึ่งเป็นเรื่องเงิน จึงต้องเห็น
+  a.gapCount = Math.max(0, a.ranges.length - 1);
+  for (let i = 1; i < a.ranges.length; i++) a.gaps += (a.ranges[i].s - a.ranges[i-1].e - 1);
   return a;
 }
 
@@ -1199,7 +1363,7 @@ function renderPicker(){
       '<select id="pkYear" class="' + cls + '">' + years.map(y => '<option value="'+y+'"'+(y===S.anchor.getFullYear()?' selected':'')+'>'+be(y)+'</option>').join('') + '</select>' + latestBtn;
     $('pkMonth').onchange = $('pkYear').onchange = () => { S.anchor = new Date(+$('pkYear').value, +$('pkMonth').value, 1); render(); };
   } else {
-    box.innerHTML = '<select id="pkYear" class="' + cls + '">' + years.map(y => '<option value="'+y+'"'+(y===S.anchor.getFullYear()?' selected':'')+'>พ.ศ. '+be(y)+'</option>').join('') + '</select>' + latestBtn;
+    box.innerHTML = '<select id="pkYear" class="' + cls + '">' + years.map(y => '<option value="'+(y|0)+'"'+(y===S.anchor.getFullYear()?' selected':'')+'>พ.ศ. '+be(y|0)+'</option>').join('') + '</select>' + latestBtn;
     $('pkYear').onchange = () => { S.anchor = new Date(+$('pkYear').value, 0, 1); render(); };
   }
   $('pkLatest').onclick = gotoLatest;
@@ -1212,7 +1376,7 @@ function render(){
     (S.isDemo ? ' <span class="text-amber-600">(กำลังแสดงข้อมูลตัวอย่าง)</span>' : '');
   $('mapInfo').textContent = S.isDemo ? '' : S.mapText;
 
-  const rows = filteredRows(), a = aggregate(rows);
+  const view = currentView(), rows = view.rows, a = view.agg;
 
   if (rows.length === 0 || !rows.some(r => r.hasData)){
     $('dashboard').classList.add('hidden');
@@ -1228,7 +1392,10 @@ function render(){
   $('dashboard').classList.remove('hidden');
 
   $('kpiTotal').textContent  = nf(a.total);
-  $('kpiAvg').textContent    = a.days > 1 ? 'เฉลี่ย ' + nf(Math.round(a.total/a.days)) + ' คัน/วัน (' + nf(a.days) + ' วัน)' : 'ข้อมูล 1 วัน';
+  // เทียบกับช่วงเดียวกันของปีก่อน (เฉพาะโหมดรายเดือน/รายปี ซึ่งเป็นช่วงที่เทียบแล้วมีความหมาย)
+  const prev = prevYearAgg();
+  $('kpiAvg').textContent    = (a.days > 1 ? 'เฉลี่ย ' + nf(Math.round(a.total/a.days)) + ' คัน/วัน' : 'ข้อมูล 1 วัน') +
+                               (prev ? yoyText(a.total, prev.total) : '');
   $('kpiCoupon').textContent = nf(a.coupon);
   $('kpiCouponRange').textContent = a.ranges.length ? 'เลขที่ ' + couponRangeText(a) : 'ไม่ระบุเลขคูปอง';
   // เงินสด/เงินโอนแยกเป็นคนละการ์ด — บรรทัดย่อยจึงใช้บอก "สัดส่วนของยอดนำส่ง" แทน
@@ -1238,7 +1405,7 @@ function render(){
   $('kpiCashSub').textContent     = noSplit ? 'ชีตไม่ได้แยกเงินสด/เงินโอน' : 'คิดเป็น ' + pct(a.cash, a.money) + ' ของยอดนำส่ง';
   $('kpiTransferSub').textContent = noSplit ? 'ชีตไม่ได้แยกเงินสด/เงินโอน' : 'คิดเป็น ' + pct(a.transfer, a.money) + ' ของยอดนำส่ง';
   $('kpiSum').textContent    = nf(a.money);
-  $('kpiDays').textContent   = 'จากข้อมูล ' + nf(a.days) + ' วัน' + (a.daysAll > a.days ? ' (ในช่วง ' + nf(a.daysAll) + ' วัน)' : '');
+  $('kpiDays').textContent   = 'จากข้อมูล ' + nf(a.days) + ' วัน' + (prev ? yoyText(a.money, prev.money) : '');
   $('kpiCancel').textContent = nf(a.cancel);
   $('kpiPrice').textContent  = a.price > 0 ? nf(a.price) : '-';
   $('kpiRatio').textContent  = pct(a.coupon, a.general);
@@ -1246,7 +1413,7 @@ function render(){
 
   $('catCards').innerHTML = CATS.map(c =>
     '<div class="catcard px-2.5 py-2" style="--kbg:linear-gradient(135deg,' + c.soft + ',' + c.soft2 + ');--kbd:' + c.line +
-        ';--kc:' + c.color + '">' +
+        ';--kc:' + c.ink + '">' +
       '<p class="klab text-[10.5px] font-semibold leading-tight truncate">' + c.label + '</p>' +
       '<p class="kval text-xl font-extrabold leading-tight">' + nf(a[c.key]) + '</p>' +
       '<p class="ksub text-[10.5px] leading-tight">คัน • ' + pct(a[c.key], a.total) + '</p>' +
@@ -1266,46 +1433,73 @@ function buildChecks(a){
 
   // 1) ผลรวมประเภทรถ ต้องเท่ากับคอลัมน์ "รวมคัน" ที่กรอกไว้ในชีต
   out.push(a.diff === 0
-    ? { st:'ok',   label:'ผลรวมประเภทรถ = คอลัมน์รวมคัน', detail:'ตรงกันทุกวัน (' + nf(a.total) + ' คัน)' }
-    : { st:'warn', label:'ผลรวมประเภทรถ = คอลัมน์รวมคัน', detail:'ต่างกันรวม ' + nf(a.diff) + ' คัน — ตรวจการกรอกในชีต' });
+    ? { id:'cat-total', st:'ok',   label:'ผลรวมประเภทรถ = คอลัมน์รวมคัน', detail:'ตรงกันทุกวัน (' + nf(a.total) + ' คัน)' }
+    : { id:'cat-total', st:'warn', label:'ผลรวมประเภทรถ = คอลัมน์รวมคัน', detail:'ต่างกันรวม ' + nf(a.diff) + ' คัน — ตรวจการกรอกในชีต' });
 
   // 2) จำนวนคูปองที่จำหน่าย ต้องเท่ากับจำนวนใบที่นับได้จากช่วงเลขที่คูปอง
   const fromNo = (a.ranges || []).reduce((s,r) => s + (r.e - r.s + 1), 0);
   if (!a.ranges || !a.ranges.length){
-    out.push({ st:'na', label:'จำนวนคูปอง = ช่วงเลขที่คูปอง', detail:'ยังไม่ได้กรอกเลขที่คูปองในชีต' });
+    out.push({ id:'coupon-range', st:'na', label:'จำนวนคูปอง = ช่วงเลขที่คูปอง', detail:'ยังไม่ได้กรอกเลขที่คูปองในชีต' });
+  } else if (a.rangeDerived){
+    // ปลายช่วงถูกคำนวณจากจำนวนคูปอง การเทียบกลับจึงตรงเสมอโดยอัตโนมัติ ไม่ถือเป็นการตรวจ
+    out.push({ id:'coupon-range', st:'na', label:'จำนวนคูปอง = ช่วงเลขที่คูปอง',
+               detail:'ชีตกรอกเลขที่คูปองมาไม่ครบช่วง (มีแต่เลขเริ่มต้น) จึงตรวจสอบยันกันไม่ได้' });
   } else {
     out.push(fromNo === a.coupon
-      ? { st:'ok',   label:'จำนวนคูปอง = ช่วงเลขที่คูปอง', detail:'นับจากเลขที่ได้ ' + nf(fromNo) + ' ใบ เท่ากับที่กรอก' }
-      : { st:'warn', label:'จำนวนคูปอง = ช่วงเลขที่คูปอง', detail:'นับจากเลขที่ได้ ' + nf(fromNo) + ' ใบ แต่กรอกไว้ ' + nf(a.coupon) + ' ใบ' });
+      ? { id:'coupon-range', st:'ok',   label:'จำนวนคูปอง = ช่วงเลขที่คูปอง', detail:'นับจากเลขที่ได้ ' + nf(fromNo) + ' ใบ เท่ากับที่กรอก' }
+      : { id:'coupon-range', st:'warn', label:'จำนวนคูปอง = ช่วงเลขที่คูปอง', detail:'นับจากเลขที่ได้ ' + nf(fromNo) + ' ใบ แต่กรอกไว้ ' + nf(a.coupon) + ' ใบ' });
   }
 
   // 3) เงินสด + เงินโอน ต้องเท่ากับยอดเงินนำส่งรวม
-  if (a.moneyOnly && (a.cash + a.transfer) === 0){
-    out.push({ st:'na', label:'เงินสด + เงินโอน = ยอดนำส่ง', detail:'ชีตกรอกเฉพาะยอดรวม ไม่ได้แยกประเภท' });
+  // ต้องเทียบกับคอลัมน์ "รวมยอดเงินส่ง" ที่ชีตกรอกไว้เอง ไม่ใช่กับ a.money
+  // เพราะ a.money คำนวณมาจาก cash+transfer อยู่แล้ว การเทียบกันจึงผ่านเสมอโดยไม่ได้ตรวจอะไร
+  const sum = a.cash + a.transfer;
+  if (a.moneyOnly && sum === 0){
+    out.push({ id:'cash-transfer', st:'na', label:'เงินสด + เงินโอน = ยอดนำส่ง', detail:'ชีตกรอกเฉพาะยอดรวม ไม่ได้แยกประเภท' });
+  } else if (!a.hasMoneyCol){
+    out.push({ id:'cash-transfer', st:'na', label:'เงินสด + เงินโอน = ยอดนำส่ง',
+               detail:'ชีตไม่มีคอลัมน์ "รวมยอดเงินส่ง" จึงไม่มีตัวเลขอิสระให้กระทบยอด' });
   } else {
-    const sum = a.cash + a.transfer;
-    out.push(sum === a.money
-      ? { st:'ok',   label:'เงินสด + เงินโอน = ยอดนำส่ง', detail:nf(a.cash) + ' + ' + nf(a.transfer) + ' = ' + nf(a.money) + ' บาท' }
-      : { st:'warn', label:'เงินสด + เงินโอน = ยอดนำส่ง', detail:'ต่างกัน ' + nf(Math.abs(a.money - sum)) + ' บาท' });
+    out.push(sum === a.moneyCol
+      ? { id:'cash-transfer', st:'ok',   label:'เงินสด + เงินโอน = รวมยอดเงินส่งในชีต',
+          detail:nf(a.cash) + ' + ' + nf(a.transfer) + ' = ' + nf(a.moneyCol) + ' บาท' }
+      : { id:'cash-transfer', st:'warn', label:'เงินสด + เงินโอน = รวมยอดเงินส่งในชีต',
+          detail:'แยกประเภทได้ ' + nf(sum) + ' บาท แต่ชีตกรอกยอดรวม ' + nf(a.moneyCol) +
+                 ' บาท (ต่าง ' + nf(Math.abs(a.moneyCol - sum)) + ') — อาจลืมกรอกช่องใดช่องหนึ่ง' });
   }
 
   // 4) คูปอง x ราคาตั๋ว ต้องเท่ากับยอดเงินนำส่ง (ข้อนี้จับยอดขาดยอดเกินได้ไวที่สุด)
   //    ยอมรับได้ 2 แบบ: นับคูปองทั้งหมด หรือหักใบที่ยกเลิกออกก่อน
   //    เพราะแต่ละวันเจ้าหน้าที่อาจบันทึกคนละแบบ ถ้าตรงแบบใดแบบหนึ่งถือว่าไม่มีปัญหา
-  if (a.price > 0){
+  if (a.priceMixed){
+    out.push({ id:'coupon-price', st:'na', label:'คูปอง × ราคาตั๋ว = ยอดนำส่ง',
+               detail:'ช่วงนี้มีราคาตั๋วมากกว่าหนึ่งราคา จึงตรวจรวมทั้งช่วงไม่ได้ — ให้ดูรายวันแทน' });
+  } else if (a.price > 0){
     const gross = a.coupon * a.price;
     const net   = (a.coupon - a.cancel) * a.price;
     if (gross === a.money || net === a.money){
       const used = (gross === a.money) ? a.coupon : (a.coupon - a.cancel);
-      out.push({ st:'ok', label:'คูปอง × ราคาตั๋ว = ยอดนำส่ง',
+      out.push({ id:'coupon-price', st:'ok', label:'คูปอง × ราคาตั๋ว = ยอดนำส่ง',
                  detail:nf(used) + ' × ' + nf(a.price) + ' = ' + nf(a.money) + ' บาท' +
                         (used !== a.coupon ? ' (หักใบยกเลิกแล้ว)' : '') });
     } else {
-      out.push({ st:'warn', label:'คูปอง × ราคาตั๋ว = ยอดนำส่ง',
+      out.push({ id:'coupon-price', st:'warn', label:'คูปอง × ราคาตั๋ว = ยอดนำส่ง',
                  detail:'ควรได้ ' + nf(gross) + ' บาท แต่กรอก ' + nf(a.money) + ' บาท (ต่าง ' + nf(Math.abs(gross - a.money)) + ')' });
     }
   } else {
-    out.push({ st:'na', label:'คูปอง × ราคาตั๋ว = ยอดนำส่ง', detail:'ยังไม่ได้กรอกราคาตั๋วในชีต' });
+    out.push({ id:'coupon-price', st:'na', label:'คูปอง × ราคาตั๋ว = ยอดนำส่ง', detail:'ยังไม่ได้กรอกราคาตั๋วในชีต' });
+  }
+
+  // 5) เลขคูปองต้องต่อเนื่องกันตลอดช่วงที่รายงาน
+  if (a.ranges.length <= 1){
+    out.push(a.ranges.length === 1
+      ? { id:'coupon-gap', st:'ok', label:'เลขคูปองต่อเนื่องตลอดช่วง',
+          detail:'เลข ' + nf(a.cStart) + '-' + nf(a.cEnd) + ' ไม่มีช่วงขาดหาย' }
+      : { id:'coupon-gap', st:'na', label:'เลขคูปองต่อเนื่องตลอดช่วง', detail:'ยังไม่ได้กรอกเลขที่คูปองในชีต' });
+  } else {
+    out.push({ id:'coupon-gap', st:'warn', label:'เลขคูปองต่อเนื่องตลอดช่วง',
+               detail:'เลขขาดหาย ' + nf(a.gaps) + ' ใบ ใน ' + nf(a.gapCount) +
+                      ' จุด — ตรวจว่ามีวันที่ยังไม่ได้บันทึก หรือคูปองสูญหาย' });
   }
 
   return out;
@@ -1343,38 +1537,80 @@ function renderTable(rows){
 }
 
 function renderCharts(rows, a){
+  try{ drawCharts(rows, a); }
+  catch(err){
+    // กราฟพังต้องไม่ลากตัวเลข/ตาราง/ปุ่มออกรายงานล่มไปด้วย จึงดักไว้ตรงนี้ชั้นหนึ่ง
+    logError('renderCharts', err);
+    S.charts.trend = null; S.charts.pie = null;   // ทิ้งอินสแตนซ์ที่อาจอยู่ในสภาพครึ่ง ๆ กลาง ๆ
+  }
+}
+
+function drawCharts(rows, a){
   if (typeof Chart === 'undefined') return;   // ไม่มีไลบรารีกราฟก็ยังแสดงตัวเลขและออกรายงานได้ตามปกติ
   // สีตัวอักษรและเส้นตารางของกราฟต้องเปลี่ยนตามธีม ไม่งั้นโหมดมืดจะอ่านไม่ออก
   const tick = S.dark ? '#cbd5e1' : '#4b5563';
   const grid = S.dark ? '#334155' : '#eef0f6';
   const arcBorder = S.dark ? '#1e293b' : '#ffffff';
-  let labels = [], values = [];
+  let labels = [], values = [], prevValues = null;
   if (S.mode === 'yearly'){
     labels = TH_MONTHS_SHORT.slice(); values = new Array(12).fill(0);
     rows.forEach(r => values[r.date.getMonth()] += r.total);
+    // ถ้าชีตมีข้อมูลของปีก่อนอยู่ด้วย ให้วางแท่งเทียบไว้ข้างกัน — เห็นแนวโน้มข้ามปีได้ทันที
+    const py = S.anchor.getFullYear() - 1;
+    const pr = S.rows.filter(r => r.date.getFullYear() === py && r.hasData);
+    if (pr.length){
+      prevValues = new Array(12).fill(0);
+      pr.forEach(r => prevValues[r.date.getMonth()] += r.total);
+    }
   } else if (S.mode === 'daily'){
     // รายวัน: แสดงย้อนหลัง 7 วัน เพื่อให้เห็นแนวโน้ม ไม่ใช่แท่งเดียวโดด ๆ
     const end = currentRange().from;
     for (let i = 6; i >= 0; i--){
       const d = addDays(end, -i);
       labels.push(pad2(d.getDate()) + '/' + pad2(d.getMonth()+1));
-      const hit = S.rows.find(x => x.key === ymd(d));
+      const hit = rowByDate(d);              // O(1) จากดัชนี แทนการไล่ทั้งอาร์เรย์ 7 รอบ
       values.push(hit ? hit.total : 0);
     }
   } else {
     rows.filter(r => r.hasData).forEach(r => { labels.push(pad2(r.date.getDate()) + '/' + pad2(r.date.getMonth()+1)); values.push(r.total); });
   }
 
+  // อัปเดตข้อมูลในกราฟเดิมถ้ามีอยู่แล้ว — การ destroy+new ทุกครั้งที่กดเปลี่ยนวัน
+  // ต้องสร้าง canvas context และ animation ใหม่ทั้งชุด ซึ่งหนักและกระตุกบนมือถือ
+  const dsets = [{ label:'จำนวนรถ (คัน)', data:values,
+                   backgroundColor: S.dark ? 'rgba(129,140,248,.95)' : 'rgba(79,70,229,.92)',
+                   hoverBackgroundColor: S.dark ? '#a5b4fc' : '#4338ca',
+                   borderRadius:8, maxBarThickness:46 }];
+  if (prevValues) dsets.push({ label:'ปีก่อน (พ.ศ. ' + be(S.anchor.getFullYear()-1) + ')', data:prevValues,
+                   backgroundColor: S.dark ? 'rgba(148,163,184,.55)' : 'rgba(148,163,184,.6)',
+                   borderRadius:8, maxBarThickness:46 });
+
+  // อัปเดตในที่เดิมได้ก็ต่อเมื่อ "จำนวนชุดข้อมูลเท่าเดิม" — ถ้าสลับโหมดแล้วมีแท่งเทียบปีก่อน
+  // เพิ่มเข้ามา ต้องสร้างกราฟใหม่ ไม่งั้นชุดที่สองจะไม่ถูกวาด
+  if (S.charts.trend && !S.themeChanged && S.charts.trend.data.datasets.length === dsets.length){
+    S.charts.trend.data.labels = labels;
+    dsets.forEach((d,i) => { S.charts.trend.data.datasets[i].data = d.data; S.charts.trend.data.datasets[i].label = d.label; });
+    S.charts.trend.update('none');
+  } else {
   if (S.charts.trend) S.charts.trend.destroy();
   S.charts.trend = new Chart($('chartTrend'), {
     type:'bar',
-    data:{ labels, datasets:[{ label:'จำนวนรถ (คัน)', data:values, backgroundColor:'rgba(99,102,241,.85)', borderRadius:8, maxBarThickness:46 }] },
+    data:{ labels, datasets:dsets },
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> ' ' + nf(c.parsed.y) + ' คัน' } } },
+      plugins:{ legend:{ display: dsets.length > 1, labels:{ color:tick, boxWidth:12, font:{ family:'Sarabun', size:11 } } },
+                tooltip:{ callbacks:{ label:(c)=> ' ' + c.dataset.label + ': ' + nf(c.parsed.y) + ' คัน' } } },
       scales:{ y:{ beginAtZero:true, ticks:{ color:tick, callback:(v)=>nf(v) }, grid:{ color:grid } },
                x:{ ticks:{ color:tick }, grid:{ display:false } } } }
   });
 
+  }
+
+  if (S.charts.pie && !S.themeChanged){
+    S.charts.pie.data.datasets[0].data = CATS.map(c => a[c.key]);
+    S.charts.pie.update('none');
+    S.themeChanged = false;
+    return;
+  }
   if (S.charts.pie) S.charts.pie.destroy();
   S.charts.pie = new Chart($('chartPie'), {
     type:'doughnut',
@@ -1383,6 +1619,7 @@ function renderCharts(rows, a){
       plugins:{ legend:{ position:'bottom', labels:{ color:tick, boxWidth:12, font:{ family:'Sarabun', size:11 } } },
         tooltip:{ callbacks:{ label:(c)=> ' ' + c.label + ': ' + nf(c.parsed) + ' คัน (' + pct(c.parsed, a.total) + ')' } } } }
   });
+  S.themeChanged = false;   // สร้างใหม่ครบทั้งสองกราฟแล้ว สีจึงตรงกับธีมปัจจุบัน
 }
 
 /* ---------------------- 11) รายงานที่ 1 : สรุปสำหรับ LINE ----------------------
@@ -1423,8 +1660,11 @@ function buildLineReport(a){
 /** แปลงสี HEX เป็น rgba — ใช้ทำพื้นอ่อนของแต่ละประเภทรถจากรหัสสีชุดเดียวกับทั้งระบบ
     (เขียนเป็น rgba ตรง ๆ เพราะ html2canvas รองรับ 8-digit hex ไม่ครบทุกเวอร์ชัน) */
 function hexA(hex, alpha){
-  const h = String(hex).replace('#','');
-  const n = parseInt(h.length === 3 ? h.split('').map(x => x+x).join('') : h, 16);
+  const h = String(hex || '').replace('#','').trim();
+  const full = (h.length === 3) ? h.split('').map(x => x+x).join('') : h;
+  const n = /^[0-9a-fA-F]{6}$/.test(full) ? parseInt(full, 16) : null;
+  // รหัสสีผิดรูปแบบต้องไม่ทำให้ได้ 'rgba(NaN,...)' ซึ่งเบราว์เซอร์จะทิ้งทั้งกฎแล้วพื้นแถวหายเงียบ ๆ
+  if (n === null) return 'rgba(148,163,184,' + alpha + ')';
   return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + alpha + ')';
 }
 
@@ -1434,7 +1674,7 @@ function hexA(hex, alpha){
  *  คูปอง -> กล่องขอบประเหมือนตั๋ว / ยอดเงิน -> กล่องไล่สีเขียวเข้ม อ่านจบใน 3 วินาที
  */
 function buildLineCard(){
-  const a = aggregate(filteredRows());
+  const a = currentView().agg;
   const maxCat = Math.max.apply(null, CATS.map(c => a[c.key]).concat([1]));
 
   // แต่ละประเภทเป็นแถวพื้นอ่อนสีของตัวเอง แยกสายตาได้เร็วกว่าตารางเปล่า ๆ
@@ -1664,7 +1904,7 @@ function metaTable(a, dateLine, rows){
     '<td style="border:none;padding:2px 0;font-size:13.5px;text-align:right">' +
       '<b>วันที่จัดทำเอกสาร:</b> ' + thShort(new Date()) + '<br>' +
       '<b>เวลา:</b> ' + pad2(new Date().getHours()) + ':' + pad2(new Date().getMinutes()) + ' น.<br>' +
-      '<b>ผู้บันทึกข้อมูล:</b> ' + (rec || '...........................................') +
+      '<b>ผู้บันทึกข้อมูล:</b> ' + (esc(rec) || '...........................................') +
     '</td>' +
   '</tr></table>';
 }
@@ -1681,7 +1921,7 @@ function signBlock(rows, fin){
   const DOTS = '.................................................';
   const line = (label, name) =>
     '<div class="sigline">ลงชื่อ ......................................................<br>' +
-    '( ' + (name || DOTS) + ' )<br><b>' + label + '</b><br>' +
+    '( ' + (esc(name) || DOTS) + ' )<br><b>' + label + '</b><br>' +
     'วันที่ ......... / ......... / .........</div>';
 
   if (!fin){
@@ -1855,7 +2095,7 @@ function docFooterBar(){
 }
 
 function buildDoc(){
-  const rows = filteredRows(), a = aggregate(rows), r = currentRange();
+  const view = currentView(), rows = view.rows, a = view.agg, r = currentRange();
   const dateLine = (S.mode === 'daily') ? thFull(r.from) : thShort(r.from) + ' ถึง ' + thShort(r.to);
   const notes = rows.map(x => x.note).filter(Boolean);
   const fin = S.docType === 'fin';
@@ -1884,7 +2124,7 @@ function buildDoc(){
       '<div class="sec">๒. สรุปคูปองและรายรับที่นำส่งเงิน</div>' + financeTable(a);
   }
 
-  if (notes.length) page1 += '<div style="font-size:12.5px;color:#4b5563;margin-top:10px"><b>หมายเหตุ:</b> ' + notes.join(' / ') + '</div>';
+  if (notes.length) page1 += '<div style="font-size:12.5px;color:#4b5563;margin-top:10px"><b>หมายเหตุ:</b> ' + notes.map(esc).join(' / ') + '</div>';
   page1 += docCheckNote(a);
 
   const pages = [page1];
@@ -1947,7 +2187,10 @@ function bahtText(n){
 async function captureDocPages(){
   const pages = Array.from($('docSheet').querySelectorAll('.dpage'));
   if (!pages.length) throw new Error('ยังไม่มีเนื้อหาเอกสาร');
-  await document.fonts.ready;                       // รอฟอนต์ไทยโหลดครบ กันตัวอักษรเพี้ยน
+  // รอฟอนต์ไทยโหลดครบ กันตัวอักษรเพี้ยน — เบราว์เซอร์เก่าบางตัวไม่มี document.fonts
+  // ถ้าเรียกตรง ๆ แล้วไม่มี จะโยน TypeError และผู้ใช้ export ไม่ได้เลย
+  try{ if (document.fonts && document.fonts.ready) await document.fonts.ready; }
+  catch(e){ logError('fontsReady', e); }
   const out = [];
   for (const el of pages){
     out.push(await html2canvas(el, { scale:2, backgroundColor:'#ffffff', useCORS:true, windowWidth: el.scrollWidth }));
@@ -2033,8 +2276,9 @@ function onEntryInput(e){
   $('enMoney').value = nf(enVal('enCash') + enVal('enTransfer'));
 
   // เตือนถ้าวันที่เลือกมีข้อมูลอยู่แล้ว จะได้รู้ตัวว่ากำลังจะเขียนทับ
-  const d = parseDate($('enDate').value);
-  const ex = d ? S.rows.find(r => r.key === ymd(d) && r.hasData) : null;
+  const d  = parseDate($('enDate').value);
+  const hit = rowByDate(d);
+  const ex = (hit && hit.hasData) ? hit : null;
   $('enDateHint').classList.toggle('hidden', !ex);
   if (ex) $('enDateHint').innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>วันนี้มีข้อมูลอยู่แล้ว (' +
     nf(ex.total) + ' คัน / ' + nf(ex.money) + ' บาท) — การบันทึกจะเขียนทับแถวเดิม';
@@ -2044,12 +2288,15 @@ function onEntryInput(e){
 
 /** ตรวจทานร่างก่อนส่ง โดยประกอบข้อมูลให้มีหน้าตาเหมือน aggregate() แล้วใช้ buildChecks() ตัวเดิม */
 function entryDraft(){
+  // ต้องมีครบทุกฟิลด์ที่ buildChecks() อ่าน ไม่งั้นข้อตรวจบางข้อจะแสดง undefined
   const o = { total:0, diff:0, coupon:enVal('enCoupon'), cancel:enVal('enCancel'), price:enVal('enPrice'),
-              cash:enVal('enCash'), transfer:enVal('enTransfer'), moneyOnly:false, ranges:[] };
+              cash:enVal('enCash'), transfer:enVal('enTransfer'), moneyOnly:false, priceMixed:false,
+              ranges:[], rangeDerived:false, cStart:0, cEnd:0,
+              moneyCol:0, hasMoneyCol:false, gaps:0, gapCount:0 };
   CATS.forEach(c => { o[c.key] = enVal('en_' + c.key); o.total += o[c.key]; });
   o.money = o.cash + o.transfer;
   const st = enVal('enNoStart'), en = enVal('enNoEnd');
-  if (st > 0 && en >= st) o.ranges = [{ s:st, e:en }];
+  if (st > 0 && en >= st){ o.ranges = [{ s:st, e:en }]; o.cStart = st; o.cEnd = en; }
   return o;
 }
 
@@ -2061,8 +2308,9 @@ function renderEntryCheck(){
     box.textContent = 'กรอกข้อมูลแล้วระบบจะตรวจทานยอดให้อัตโนมัติก่อนบันทึก';
     return;
   }
-  // ข้อ 1 (ผลรวมประเภทรถ) ไม่มีความหมายในฟอร์ม เพราะยอดรวมคำนวณจากช่องที่กรอกอยู่แล้ว
-  const warns = buildChecks(d).slice(1).filter(c => c.st === 'warn');
+  // ข้าม 'cat-total' เพราะในฟอร์มยอดรวมคำนวณจากช่องที่กรอกอยู่แล้ว จึงตรงเสมอโดยปริยาย
+  // อ้างด้วย id ไม่ใช่ลำดับ — ถ้าวันหลังเพิ่มข้อตรวจใหม่ ตรงนี้จะไม่พังตามไปด้วย
+  const warns = buildChecks(d).filter(c => c.id !== 'cat-total' && c.st === 'warn');
   if (warns.length){
     box.className = 'text-[11.5px] rounded-xl px-3 py-2 border border-amber-300 bg-amber-50 text-amber-800';
     box.innerHTML = '<b><i class="fa-solid fa-triangle-exclamation mr-1"></i>ตรวจพบยอดไม่ตรงกัน ' + warns.length + ' รายการ</b><br>' +
@@ -2114,6 +2362,7 @@ async function submitEntry(){
 
   const payload = {
     action  : 'save',
+    token   : CONFIG.WRITE_TOKEN,
     date    : ymd(d),                       // ส่งเป็น ค.ศ. YYYY-MM-DD แล้วให้ฝั่ง Apps Script แปลงเป็น พ.ศ. ตามรูปแบบชีต
     total   : draft.total,
     coupon  : draft.coupon,
@@ -2146,7 +2395,7 @@ async function submitEntry(){
     await new Promise(r => setTimeout(r, 2200));
     await init(true);
 
-    const saved = S.rows.find(r => r.key === ymd(d));
+    const saved = rowByDate(d);
     if (saved && saved.hasData && saved.money === payload.money){
       closeEntry();
       // เด้งไปดูวันที่เพิ่งบันทึก เพื่อให้ตรวจทานผลได้ทันทีโดยไม่ต้องกดเลือกเอง
@@ -2187,7 +2436,8 @@ function showDebug(){
     html += '<div class="bg-rose-50 border border-rose-200 rounded-xl p-3">' +
       '<p class="font-bold text-rose-800 mb-1"><i class="fa-solid fa-bug mr-1"></i>บันทึกข้อผิดพลาด (' + LOG.length + ')</p>' +
       '<ul class="text-rose-900 text-xs space-y-0.5">' +
-      LOG.slice(-8).reverse().map(l => '<li>' + pad2(l.t.getHours()) + ':' + pad2(l.t.getMinutes()) + ':' + pad2(l.t.getSeconds()) + ' [' + l.where + '] ' + l.msg + '</li>').join('') +
+      LOG.slice(-8).reverse().map(l => '<li>' + pad2(l.t.getHours()) + ':' + pad2(l.t.getMinutes()) + ':' + pad2(l.t.getSeconds()) +
+        ' [' + esc(l.where) + '] ' + esc(l.msg) + '</li>').join('') +
       '</ul></div>';
   }
 
@@ -2207,20 +2457,20 @@ function showDebug(){
           ' &nbsp; <b>อ่านวันที่สำเร็จ:</b> ' + nf(S.isDemo ? 0 : S.rows.length) +
           ' &nbsp; <b>มีข้อมูลจริง:</b> ' + nf(withData) + ' วัน</p>' +
         '<p><b>วันล่าสุดที่มีข้อมูล:</b> ' + (last ? thShort(last.date) : '-') + '</p>' +
-        '<p><b>คอลัมน์วันที่ที่ระบบเลือก:</b> ' + (dateCol >= 0 ? 'ลำดับที่ ' + (dateCol+1) + ' → "' + header[dateCol] + '"' : '<span class="text-rose-600">ไม่พบ</span>') + '</p>' +
+        '<p><b>คอลัมน์วันที่ที่ระบบเลือก:</b> ' + (dateCol >= 0 ? 'ลำดับที่ ' + (dateCol+1) + ' → "' + esc(header[dateCol]) + '"' : '<span class="text-rose-600">ไม่พบ</span>') + '</p>' +
       '</div>' +
       '<div><p class="font-semibold mb-1">ผลการจับคู่คอลัมน์</p>' +
         '<div class="flex flex-wrap gap-1">' + MATCH.map(([k]) =>
           '<span class="px-2 py-1 rounded text-xs ' + (idx[k] >= 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-700') + '">' +
-          k + ' → ' + (idx[k] >= 0 ? header[idx[k]] : 'ไม่พบ') + '</span>').join('') + '</div></div>' +
+          esc(k) + ' → ' + (idx[k] >= 0 ? esc(header[idx[k]]) : 'ไม่พบ') + '</span>').join('') + '</div></div>' +
       '<div><p class="font-semibold mb-1">ตัวอย่าง 5 แถวแรก และผลการแปลงวันที่</p>' +
         '<div class="overflow-x-auto"><table class="w-full text-xs border"><tbody>' +
         sample.map(r => {
           const v = dateCol >= 0 ? r[dateCol] : r[0];
           const d = parseDate(v);
-          return '<tr class="border-b"><td class="p-1 border-r whitespace-nowrap">ค่าดิบ: <b>"' + String(v||'') + '"</b></td>' +
+          return '<tr class="border-b"><td class="p-1 border-r whitespace-nowrap">ค่าดิบ: <b>"' + esc(v) + '"</b></td>' +
                  '<td class="p-1 ' + (d ? 'text-emerald-700' : 'text-rose-600 font-bold') + '">' + (d ? 'แปลงได้ → ' + thShort(d) : 'แปลงไม่ได้') + '</td>' +
-                 '<td class="p-1 text-gray-500 border-l">' + r.slice(0,6).map(x => String(x||'-')).join(' | ') + ' ...</td></tr>';
+                 '<td class="p-1 text-gray-500 border-l">' + r.slice(0,6).map(x => esc(x || '-')).join(' | ') + ' ...</td></tr>';
         }).join('') +
         '</tbody></table></div></div>';
   }
@@ -2234,6 +2484,7 @@ function showDebug(){
    เก็บสถานะไว้ในหน่วยความจำของหน้า ไม่ใช้ browser storage
 ------------------------------------------------------------------ */
 function applyTheme(){
+  S.themeChanged = true;    // บังคับให้กราฟถูกสร้างใหม่ สีตัวอักษร/เส้นตารางจะได้ตรงกับธีม
   document.documentElement.classList.toggle('dark', S.dark);
   $('themeIcon').className = S.dark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
   $('btnTheme').title = S.dark ? 'สลับเป็นโหมดสว่าง' : 'สลับเป็นโหมดมืด';
@@ -2417,7 +2668,7 @@ async function init(isRefresh){
       toast('เชื่อมต่อได้ แต่แปลงค่าวันที่ไม่สำเร็จ — กดปุ่มรูปหูฟัง (🩺) มุมขวาบน เพื่อดูข้อมูลดิบ', 'warn');
     } else {
       const srcName = usedSource === 'gas' ? 'Apps Script' : 'Sheets โดยตรง';
-      $('syncBadge').innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> ' + srcName + ' • ' + nf(S.rows.length) + ' รายการ';
+      $('syncBadge').innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> ' + esc(srcName) + ' • ' + nf(S.rows.length) + ' รายการ';
       if (isRefresh) toast('อัปเดตข้อมูลเรียบร้อยแล้ว (' + srcName + ')');
       if (CONFIG.SOURCE === 'gas' && usedSource === 'gviz') toast('เชื่อมต่อ Web App ไม่ได้ ระบบสลับไปดึงข้อมูลจากชีตโดยตรงแทน', 'warn');
     }
@@ -2426,6 +2677,10 @@ async function init(isRefresh){
     $('syncBadge').innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> ใช้ข้อมูลตัวอย่าง';
     toast('เชื่อมต่อข้อมูลไม่สำเร็จ' + (errMsg ? ' (' + errMsg + ')' : '') + ' — กรุณาตรวจสอบสิทธิ์การเข้าถึงชีต แล้วกดรีเฟรช', 'error');
   }
+
+  // ชุดข้อมูลเปลี่ยนแล้ว — สร้างดัชนีค้นหาใหม่และล้างแคชผลสรุปของช่วงเดิม
+  // ต้องทำก่อนเรียก latestDataRow()/render() ไม่งั้นจะอ่านค่าจากแคชชุดเก่า
+  reindexRows();
 
   // ตั้งวันอ้างอิงเป็นวันล่าสุดที่มีข้อมูล เพื่อไม่ให้เปิดมาเจอหน้าว่าง
   // ตั้งวันอ้างอิงเป็น "วันล่าสุดที่มีข้อมูลจริง" ไม่ใช่แถวสุดท้ายของชีต
