@@ -381,7 +381,7 @@
 
     <!-- แถบข้อมูลคูปองเพิ่มเติม — ย่อความสูงลงให้เป็นแถบรอง ไม่แย่งความสนใจจาก KPI หลัก -->
     <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
-      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(140deg,#FFE4E6 0%,#FECDD3 45%,#FDA4AF 100%);--kbd:#FB7185;--kc:#881337"><p class="klab text-[10.5px] font-semibold leading-tight">ยกเลิกคูปอง</p><p class="kval text-lg font-bold leading-tight"><span id="kpiCancel">0</span> <span class="kunit text-[11px] font-medium">ใบ</span></p></div>
+      <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(140deg,#FFE4E6 0%,#FECDD3 45%,#FDA4AF 100%);--kbd:#FB7185;--kc:#881337"><p class="klab text-[10.5px] font-semibold leading-tight">ยอดเงินคืนรวม</p><p class="kval text-lg font-bold leading-tight"><span id="kpiRefundAmt">0</span> <span class="kunit text-[11px] font-medium">บาท</span></p></div>
       <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(140deg,#F3E8FF 0%,#E9D5FF 45%,#D8B4FE 100%);--kbd:#C084FC;--kc:#581C87"><p class="klab text-[10.5px] font-semibold leading-tight">คูปองคืนย้อนหลัง</p><p class="kval text-lg font-bold leading-tight"><span id="kpiRefund">0</span> <span class="kunit text-[11px] font-medium">ใบ</span></p></div>
       <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(140deg,#FEF3C7 0%,#FDE68A 45%,#FCD34D 100%);--kbd:#FBBF24;--kc:#92400E"><p class="klab text-[10.5px] font-semibold leading-tight">ราคาตั๋ว</p><p class="kval text-lg font-bold leading-tight"><span id="kpiPrice">-</span> <span class="kunit text-[11px] font-medium">บาท/ใบ</span></p></div>
       <div class="minicard px-3 py-2 text-center" style="--kbg:linear-gradient(140deg,#CFFAFE 0%,#A5F3FC 45%,#67E8F9 100%);--kbd:#22D3EE;--kc:#155E75"><p class="klab text-[10.5px] font-semibold leading-tight">สัดส่วนลูกค้าทั่วไปที่ซื้อคูปอง</p><p class="kval text-lg font-bold leading-tight"><span id="kpiRatio">-</span></p></div>
@@ -433,13 +433,14 @@
     <section class="card p-3 sm:p-4">
       <h2 class="font-bold text-gray-700 text-sm sm:text-base mb-2"><i class="fa-solid fa-table-list text-indigo-500 mr-1"></i> ข้อมูลรายวันในช่วงที่เลือก</h2>
       <div class="scroll-x -mx-1 px-1">
-        <table class="w-full text-xs sm:text-sm min-w-[760px]">
+        <table class="w-full text-xs sm:text-sm min-w-[920px]">
           <thead class="bg-indigo-50 text-indigo-800">
             <tr>
               <th class="p-2 text-left rounded-l-lg whitespace-nowrap">ว/ด/ป</th>
               <th class="p-2">VIP Seacon</th><th class="p-2">รายเดือน</th><th class="p-2">พนง.ร้านค้า</th>
               <th class="p-2">พนง.Seacon</th><th class="p-2">สรรพากร</th><th class="p-2">ทั่วไป</th>
-              <th class="p-2">รวมคัน</th><th class="p-2">คูปอง</th><th class="p-2">ยกเลิก</th><th class="p-2 rounded-r-lg">รวมยอดเงินส่ง</th>
+              <th class="p-2">รวมคัน</th><th class="p-2">คูปอง</th><th class="p-2">เลขที่คูปอง</th>
+              <th class="p-2">รวมยอดเงินส่ง</th><th class="p-2">คืนย้อนหลัง</th><th class="p-2 rounded-r-lg">ยอดสุทธิ</th>
             </tr>
           </thead>
           <tbody id="dataTable" class="divide-y divide-gray-100 text-center"></tbody>
@@ -453,7 +454,7 @@
 <button id="btnEntry" class="fab no-print"><i class="fa-solid fa-pen-to-square mr-2"></i>บันทึกข้อมูล</button>
 
 <footer class="text-center text-xs text-gray-400 py-6">
-  EarlyBird Parking Analytics v20 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
+  EarlyBird Parking Analytics v22 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
 </footer>
 
 <div id="docModal" class="hidden fixed inset-0 bg-black/60 z-50 overflow-auto p-4">
@@ -506,7 +507,7 @@
 <div id="entryModal" class="hidden fixed inset-0 bg-black/60 z-50 overflow-auto p-3 sm:p-4">
   <div class="max-w-2xl mx-auto card p-4 sm:p-5 my-2">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="font-bold text-gray-700"><i class="fa-solid fa-pen-to-square text-indigo-500 mr-1"></i> บันทึกข้อมูลประจำวัน</h2>
+      <h2 id="entryTitle" class="font-bold text-gray-700"><i class="fa-solid fa-pen-to-square text-indigo-500 mr-1"></i> บันทึกข้อมูลประจำวัน</h2>
       <button id="btnEntryClose" class="text-gray-400 hover:text-gray-600 px-2"><i class="fa-solid fa-xmark text-xl"></i></button>
     </div>
 
@@ -514,7 +515,9 @@
       <div>
         <label class="text-[11px] font-semibold text-gray-500">วันที่บันทึก</label>
         <input type="date" id="enDate" class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1">
-        <p id="enDateHint" class="text-[11px] text-amber-600 mt-1 hidden"></p>
+        <!-- แถบสถานะบอกให้ชัดว่ากำลัง "เพิ่มใหม่" หรือ "แก้ไขของเดิม" และเปลี่ยนอะไรไปแล้วบ้าง
+             เพราะการเขียนทับแถวเดิมเป็นการกระทำที่ย้อนกลับไม่ได้ ผู้ใช้ต้องเห็นก่อนกดบันทึก -->
+        <div id="enMode" class="mt-2 text-[11.5px] rounded-lg px-3 py-2 border border-gray-200 bg-gray-50 text-gray-500"></div>
       </div>
 
       <div>
@@ -525,15 +528,13 @@
 
       <div>
         <p class="text-[11px] font-semibold text-gray-500 mb-1">คูปองที่จำหน่าย</p>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div class="grid grid-cols-3 gap-2">
           <div><label class="text-[10.5px] text-gray-500">เลขที่เริ่มต้น</label>
             <input id="enNoStart" inputmode="numeric" class="w-full border border-gray-300 rounded-lg px-2.5 py-2 mt-0.5" placeholder="39117"></div>
           <div><label class="text-[10.5px] text-gray-500">เลขที่สิ้นสุด</label>
             <input id="enNoEnd" inputmode="numeric" class="w-full border border-gray-300 rounded-lg px-2.5 py-2 mt-0.5" placeholder="39353"></div>
           <div><label class="text-[10.5px] text-gray-500">จำนวน (ใบ)</label>
             <input id="enCoupon" inputmode="numeric" class="w-full border border-gray-300 rounded-lg px-2.5 py-2 mt-0.5 bg-gray-50" placeholder="0"></div>
-          <div><label class="text-[10.5px] text-gray-500">ยกเลิก (ใบ)</label>
-            <input id="enCancel" inputmode="numeric" class="w-full border border-gray-300 rounded-lg px-2.5 py-2 mt-0.5" placeholder="0"></div>
         </div>
         <p class="text-[11px] text-gray-400 mt-1">กรอกเลขที่เริ่ม-สิ้นสุด ระบบจะนับจำนวนใบให้อัตโนมัติ (แก้ทับได้)</p>
       </div>
@@ -579,9 +580,10 @@
         <button id="btnEntrySubmit" class="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold py-3 rounded-xl shadow disabled:opacity-60">
           <i class="fa-solid fa-cloud-arrow-up mr-2"></i> บันทึกลง Google Sheets
         </button>
-        <button id="btnEntryClear" class="px-4 bg-gray-100 text-gray-600 font-semibold rounded-xl">ล้าง</button>
+        <button id="btnEntryReload" class="px-3 bg-gray-100 text-gray-600 font-semibold rounded-xl text-sm" title="ดึงค่าเดิมของวันนี้กลับมา">คืนค่าเดิม</button>
+        <button id="btnEntryClear" class="px-3 bg-gray-100 text-gray-600 font-semibold rounded-xl text-sm">ล้าง</button>
       </div>
-      <p class="text-[10.5px] text-gray-400 text-center">ถ้ามีข้อมูลของวันนั้นอยู่แล้ว ระบบจะเขียนทับแถวเดิม ไม่สร้างแถวซ้ำ</p>
+      <p class="text-[10.5px] text-gray-400 text-center">แก้ไขของเดิม: ระบบจะเขียนทับเฉพาะช่องที่คุณแก้ ช่องอื่นในแถวเดิมคงไว้ตามเดิม</p>
     </div>
   </div>
 </div>
@@ -601,7 +603,7 @@
 
 <script>
 /* ==========================================================================
-   EarlyBird Parking Analytics v20.0
+   EarlyBird Parking Analytics v22.0
    ระบบวิเคราะห์ยอดรถเข้าจอดก่อนเวลาศูนย์การค้าเปิดทำการ
    v10: การ์ดสรุป LINE เต็มขอบไม่มีแถบขาวข้าง + ดึงชื่อผู้บันทึกจากชีต + เปลี่ยนชื่อหัวใบรายงานแบบเต็ม
    v11: - ย่อกรอบตัวกรองให้เป็นแถบเดียว ไม่ให้ดูใหญ่กว่าการ์ด KPI
@@ -657,6 +659,13 @@
         [เพิ่ม]    รองรับการคืนคูปองย้อนหลัง 3 คอลัมน์ (คูปองคืนย้อนหลัง / ยอดเงินคืน / ยอดสุทธิ)
                    คำนวณยอดสุทธิ = ยอดนำส่ง - ยอดคืน โดยไม่แก้ยอดนำส่งเดิม
         [UI]       ตัดแถบเส้นทึบด้านบนการ์ด KPI ออก เปลี่ยนเป็นไล่สีสามจุด
+   v22: [เพิ่ม] โหมดแก้ไข: เปิดฟอร์มแล้วเห็นข้อมูลเดิมของวันนั้นทันที แก้เฉพาะช่องที่ต้องการ
+                 ระบบส่งเฉพาะช่องที่เปลี่ยนจริงไป backend (data.only) ช่องอื่นในแถวเดิมไม่ถูกแตะ
+                 พร้อมแถบสถานะบอกว่ากำลังเพิ่มใหม่/แก้ไข และจะเขียนทับช่องไหนบ้าง
+        [ลบ]   คอลัมน์ "ยกเลิกคูปอง" ออกทั้งระบบ เพราะซ้ำซ้อนกับ "คูปองคืนย้อนหลัง"
+        [แก้]  ตาราง "ข้อมูลรายวันในช่วงที่เลือก" เปลี่ยนคอลัมน์เป็น
+                 เลขที่คูปอง / รวมยอดเงินส่ง / คืนย้อนหลัง / ยอดสุทธิ
+        [แก้]  เปลี่ยนเลขไทยในหัวข้อเอกสารเป็นเลขอารบิกทั้งหมด
    ========================================================================== */
 
 /* ---------------------- 1) CONFIG ---------------------- */
@@ -774,7 +783,6 @@ const MATCH = [
   ['totalCol', ['รวมคัน','รวมรถ']],
   ['coupon',   ['ยอดคูปอง','จำนวนคูปอง','คูปอง(ใบ)']],
   ['couponNo', ['เลขที่คูปอง','เลขคูปอง']],
-  ['cancel',   ['ยกเลิกคูปอง','ยกเลิก']],
   /* คูปองที่ลูกค้านำมาคืนภายหลัง (คนละเรื่องกับ "ยกเลิก" ซึ่งเกิดในวันจำหน่ายเอง)
      แยกเป็นคอลัมน์ของตัวเองโดยเจตนา ไม่ให้ไปแก้ยอดจำหน่ายเดิม เพราะยอดนั้นนำส่งเงิน
      และมีลายเซ็นรับรองไปแล้ว การแก้ย้อนหลังจะทำให้เอกสารกับชีตไม่ตรงกันจนตรวจสอบไม่ได้ */
@@ -1146,7 +1154,6 @@ function normalize(rawHeader, rawData){
     o.diff     = totalCol > 0 ? sumCat - totalCol : 0;   // ไว้เตือนเมื่อชีตกรอกไม่ตรงกัน
 
     o.coupon   = idx.coupon   >= 0 ? num(r[idx.coupon])   : 0;
-    o.cancel   = idx.cancel   >= 0 ? num(r[idx.cancel])   : 0;
     o.price    = idx.price    >= 0 ? num(r[idx.price])    : 0;
     o.cash     = idx.cash     >= 0 ? num(r[idx.cash])     : 0;
     o.transfer = idx.transfer >= 0 ? num(r[idx.transfer]) : 0;
@@ -1187,7 +1194,7 @@ function normalize(rawHeader, rawData){
     if (!prev){ map.set(r.key, r); return; }
     dup++;
     CATS.forEach(c => prev[c.key] += r[c.key]);
-    prev.total += r.total; prev.coupon += r.coupon; prev.cancel += r.cancel;
+    prev.total += r.total; prev.coupon += r.coupon;
     prev.cash += r.cash; prev.transfer += r.transfer; prev.money += r.money;
     prev.moneyCol += r.moneyCol;
     prev.refund += r.refund; prev.refundAmt += r.refundAmt;
@@ -1205,7 +1212,7 @@ function normalize(rawHeader, rawData){
 
   // ทำเครื่องหมายแถวที่ "มีข้อมูลจริง" เพื่อไม่ให้แถววันที่เปล่าที่สร้างล่วงหน้าไว้ทั้งปี
   // ถูกนับเป็นข้อมูลล่าสุด หรือถูกนำไปหารเฉลี่ย
-  out.forEach(r => { r.hasData = (r.total > 0 || r.coupon > 0 || r.money > 0 || r.cancel > 0); });
+  out.forEach(r => { r.hasData = (r.total > 0 || r.coupon > 0 || r.money > 0 || r.refund > 0); });
 
   if (S.truncated) S.warnings.push('ชีตมีขนาดใหญ่ ระบบดึงมาเฉพาะข้อมูลล่าสุด 5,000 แถว');
   if (dup > 0) S.warnings.push('พบวันที่ซ้ำกัน ' + dup + ' แถว — ระบบรวมยอดให้อัตโนมัติแล้ว');
@@ -1241,7 +1248,6 @@ function demoRows(){
     o.total   = CATS.reduce((s,c) => s + o[c.key], 0);
     o.totalCol= o.total; o.diff = 0;
     o.coupon  = Math.round(o.general * 0.9);
-    o.cancel  = Math.random() < 0.3 ? Math.round(Math.random()*3) : 0;
     o.price   = 20;
     o.cStart  = running; o.cEnd = running + o.coupon - 1; running = o.cEnd + 1;
     o.ranges  = [{ s:o.cStart, e:o.cEnd }];
@@ -1374,7 +1380,7 @@ function currentView(){
   return S.cache;
 }
 function aggregate(rows){
-  const a = { total:0, coupon:0, cancel:0, cash:0, transfer:0, money:0,
+  const a = { total:0, coupon:0, cash:0, transfer:0, money:0,
               days:0, daysAll:rows.length, cStart:0, cEnd:0, price:0, diff:0, ranges:[],
               moneyOnly:false, priceMixed:false, priceFallback:false,
               moneyCol:0, hasMoneyCol:false, hasTotalCol:false, totalColDays:0,
@@ -1388,7 +1394,7 @@ function aggregate(rows){
   const spans = [];
   rows.forEach(r => {
     CATS.forEach(c => a[c.key] += r[c.key]);
-    a.total += r.total; a.coupon += r.coupon; a.cancel += r.cancel;
+    a.total += r.total; a.coupon += r.coupon;
     a.cash += r.cash; a.transfer += r.transfer; a.money += r.money;
     if (r.moneyCol > 0){ a.moneyCol += r.moneyCol; a.hasMoneyCol = true; }
     a.refund += r.refund; a.refundAmt += r.refundAmt;
@@ -1507,7 +1513,7 @@ function render(){
   $('kpiDays').textContent   = a.hasRefund
     ? 'นำส่ง ' + nf(a.money) + ' − คืน ' + nf(a.refundAmt) + ' บาท'
     : 'จากข้อมูล ' + nf(a.days) + ' วัน' + (prev ? yoyText(a.money, prev.money) : '');
-  $('kpiCancel').textContent = nf(a.cancel);
+  $('kpiRefundAmt').textContent = nf(a.refundAmt);
   $('kpiPrice').textContent  = a.price > 0 ? nf(a.price) : '-';
   $('kpiRatio').textContent  = pct(a.coupon, a.general);
   $('kpiAvgMoney').textContent = a.days > 0 ? nf(Math.round(a.money/a.days)) : '0';
@@ -1554,11 +1560,12 @@ function dayAudit(rows, a){
     }
 
     // ข) คูปอง x ราคาตั๋วของวันนั้น ต้องเท่ากับยอดเงินที่นำส่งของวันนั้น
-    //    ยอมรับทั้งแบบนับคูปองเต็ม และแบบหักใบที่ยกเลิกออกก่อน
+    //    ยอดนำส่งคือเงินที่รับมาจริงในวันนั้น การคืนคูปองย้อนหลังไม่เกี่ยวกับข้อนี้
+    //    (ไปหักที่ "ยอดสุทธิ" แทน) การกระทบยอดวันจำหน่ายจึงยังตรงไปตรงมา
     if (r.price > 0 && r.coupon > 0 && r.money > 0){
       a.checkedMoney++;
-      const gross = r.coupon * r.price, net = (r.coupon - r.cancel) * r.price;
-      if (gross !== r.money && net !== r.money)
+      const gross = r.coupon * r.price;
+      if (gross !== r.money)
         a.badMoney.push(label + ' (ควรได้ ' + nf(gross) + ' / กรอก ' + nf(r.money) + ')');
     }
   });
@@ -1622,7 +1629,6 @@ function buildChecks(a){
 
   // 4) คูปอง x ราคาตั๋วของแต่ละวัน ต้องเท่ากับยอดเงินนำส่งของวันนั้น
   //    ตรวจรายวันเพราะราคาตั๋วอาจต่างกันระหว่างวัน การคูณรวมทั้งช่วงจึงไม่มีทางตรง
-  //    ยอมรับทั้งแบบนับคูปองเต็ม และแบบหักใบที่ยกเลิกออกก่อน (แต่ละวันอาจบันทึกคนละแบบ)
   if (!a.checkedMoney){
     out.push({ id:'coupon-price', st:'na', label:'คูปอง × ราคาตั๋ว = ยอดนำส่ง (รายวัน)',
                detail:'ยังไม่ได้กรอกราคาตั๋วหรือยอดเงินในชีต จึงตรวจยันกันไม่ได้' });
@@ -1699,8 +1705,13 @@ function renderTable(rows){
       '<td class="p-2 font-bold text-indigo-700">' + nf(r.total) +
         (r.diff !== 0 ? ' <span title="ผลรวมประเภทรถไม่ตรงกับคอลัมน์รวมคันในชีต" class="text-amber-500"><i class="fa-solid fa-triangle-exclamation"></i></span>' : '') + '</td>' +
       '<td class="p-2">' + nf(r.coupon) + '</td>' +
-      '<td class="p-2 ' + (r.cancel > 0 ? 'text-rose-600 font-semibold' : 'text-gray-400') + '">' + nf(r.cancel) + '</td>' +
+      // เลขที่คูปองช่วยให้ตรวจย้อนกับเล่มจริงได้ทันทีโดยไม่ต้องเปิดชีต
+      '<td class="p-2 text-gray-500 whitespace-nowrap text-[11px] sm:text-xs">' +
+        (r.ranges && r.ranges.length ? esc(nf(r.ranges[0].s) + '-' + nf(r.ranges[r.ranges.length-1].e)) : '-') + '</td>' +
       '<td class="p-2 font-semibold text-emerald-700">' + nf(r.money) + '</td>' +
+      '<td class="p-2 ' + (r.refundAmt > 0 ? 'text-fuchsia-700 font-semibold' : 'text-gray-300') + '">' +
+        (r.refundAmt > 0 ? nf(r.refund) + ' ใบ / ' + nf(r.refundAmt) : '-') + '</td>' +
+      '<td class="p-2 font-bold ' + (r.refundAmt > 0 ? 'text-indigo-700' : 'text-gray-400') + '">' + nf(r.net) + '</td>' +
     '</tr>').join('');
 }
 
@@ -1815,7 +1826,6 @@ function buildLineReport(a){
   L.push(LINE_SEP);
   L.push('💳 จำหน่ายคูปอง  ' + nf(a.coupon) + ' ใบ');
   if (a.ranges.length) L.push('     เลขที่ ' + couponRangeText(a));
-  if (a.cancel > 0)    L.push('     ยกเลิก ' + nf(a.cancel) + ' ใบ');
   if (a.hasRefund)     L.push('     คืนย้อนหลัง ' + nf(a.refund) + ' ใบ (−' + nf(a.refundAmt) + ' บาท)');
   if ((a.cash + a.transfer) > 0){
     L.push('     เงินสด  ' + nf(a.cash) + ' บาท');
@@ -1913,8 +1923,6 @@ function buildLineCard(){
     '</tr>' +
     (a.ranges.length ? '<tr class="row"><td style="font-size:27px;color:#475569">เลขที่คูปอง</td>' +
       '<td colspan="2" style="text-align:right;font-size:28px;color:#0f172a">' + couponRangeText(a) + '</td></tr>' : '') +
-    (a.cancel > 0 ? '<tr class="row"><td style="font-size:27px;color:#475569">ยกเลิกคูปอง</td>' +
-      '<td colspan="2" style="text-align:right;font-size:29px;color:#e11d48;font-weight:600">' + nf(a.cancel) + ' ใบ</td></tr>' : '') +
     (a.hasRefund ? '<tr class="row"><td style="font-size:27px;color:#475569">คืนคูปองย้อนหลัง</td>' +
       '<td colspan="2" style="text-align:right;font-size:29px;color:#7E22CE;font-weight:600">' +
       nf(a.refund) + ' ใบ (−' + nf(a.refundAmt) + ')</td></tr>' : '') +
@@ -2115,7 +2123,6 @@ function financeTable(a){
   return '<table><tbody>' +
     '<tr><th style="width:55%;text-align:left">จำนวนคูปองที่จำหน่าย</th><td colspan="2" style="text-align:right">' + nf(a.coupon) + ' ใบ</td></tr>' +
     '<tr><th style="text-align:left">ช่วงเลขที่คูปอง</th><td colspan="2" style="text-align:right">' + (a.ranges.length ? couponRangeText(a) : '-') + '</td></tr>' +
-    '<tr><th style="text-align:left">คูปองที่ยกเลิก</th><td colspan="2" style="text-align:right">' + nf(a.cancel) + ' ใบ</td></tr>' +
     '<tr><th style="text-align:left">ราคาตั๋วต่อใบ</th><td colspan="2" style="text-align:right">' + (a.price > 0 ? nf(a.price) + ' บาท' : '-') + '</td></tr>' +
     (a.moneyOnly && (a.cash + a.transfer) === 0
       ? '<tr><th style="text-align:left">การแยกประเภทรายรับ</th><td colspan="2" style="text-align:right">ไม่ได้แยกเงินสด/เงินโอนในระบบต้นทาง</td></tr>'
@@ -2181,8 +2188,8 @@ function docCheckNote(a){
 }
 
 /* ---------------------- 13.1) เอกสาร A4 แบบหลายหน้า ----------------------
-   หน้า ๑ = สรุปยอด (เหมือนเดิม)
-   หน้า ๒ เป็นต้นไป = ตารางแนบท้ายแยกรายวัน (หรือรายเดือนเมื่อเลือกโหมดรายปี)
+   หน้า 1 = สรุปยอด (เหมือนเดิม)
+   หน้า 2 เป็นต้นไป = ตารางแนบท้ายแยกรายวัน (หรือรายเดือนเมื่อเลือกโหมดรายปี)
    ทำไมต้องแนบ: บัญชีต้องกระทบยอดรายวันกับใบเสร็จ/คูปองจริง การมีแต่ยอดรวมทั้งเดือน
    ทำให้ต้องเปิดชีตควบคู่ตลอด ซึ่งเป็นช่องให้เกิดความผิดพลาด
 ------------------------------------------------------------------------- */
@@ -2197,14 +2204,14 @@ function detailRows(rows){
   const withData = rows.filter(r => r.hasData);
   if (S.mode === 'yearly'){
     const buckets = TH_MONTHS.map(m => {
-      const o = { label:m, total:0, coupon:0, cancel:0, cash:0, transfer:0, money:0, refundAmt:0, net:0 };
+      const o = { label:m, total:0, coupon:0, cash:0, transfer:0, money:0, refund:0, refundAmt:0, net:0 };
       CATS.forEach(c => o[c.key] = 0);
       return o;
     });
     withData.forEach(r => {
       const b = buckets[r.date.getMonth()];
       CATS.forEach(c => b[c.key] += r[c.key]);
-      b.total += r.total; b.coupon += r.coupon; b.cancel += r.cancel;
+      b.total += r.total; b.coupon += r.coupon; b.refund += r.refund;
       b.cash += r.cash; b.transfer += r.transfer; b.money += r.money;
       b.refundAmt += r.refundAmt; b.net += r.net;
     });
@@ -2212,7 +2219,7 @@ function detailRows(rows){
   }
   return withData.map(r => {
     const o = { label: thShort(r.date) + ' (' + TH_DAYS[r.date.getDay()].slice(0,2) + ')',
-                total:r.total, coupon:r.coupon, cancel:r.cancel,
+                total:r.total, coupon:r.coupon, refund:r.refund,
                 cash:r.cash, transfer:r.transfer, money:r.money,
                 refundAmt:r.refundAmt, net:r.net };
     CATS.forEach(c => o[c.key] = r[c.key]);
@@ -2220,7 +2227,7 @@ function detailRows(rows){
   });
 }
 
-/** หัวกระดาษแบบย่อสำหรับหน้าแนบท้าย — ไม่ซ้ำหัวเต็มของหน้า ๑ แต่ยังอ้างอิงเอกสารได้ครบ */
+/** หัวกระดาษแบบย่อสำหรับหน้าแนบท้าย — ไม่ซ้ำหัวเต็มของหน้า 1 แต่ยังอ้างอิงเอกสารได้ครบ */
 function docMiniHeader(title, dateLine){
   return '<table style="border:none;margin-bottom:10px"><tr>' +
     '<td style="border:none;padding:0;vertical-align:middle">' +
@@ -2239,7 +2246,7 @@ function detailTable(list, startIndex){
   const head = '<thead><tr>' +
     '<th style="text-align:left;width:16%">' + (S.mode === 'yearly' ? 'เดือน' : 'วันที่') + '</th>' +
     CATS.map(c => '<th>' + c.short + '</th>').join('') +
-    '<th>รวมคัน</th><th>คูปอง</th><th>ยกเลิก</th><th>เงินสด</th><th>เงินโอน</th><th>รวมเงิน</th><th>คืน</th><th>สุทธิ</th>' +
+    '<th>รวมคัน</th><th>คูปอง</th><th>เงินสด</th><th>เงินโอน</th><th>รวมเงิน</th><th>คืน (ใบ)</th><th>เงินคืน</th><th>สุทธิ</th>' +
   '</tr></thead>';
 
   const body = list.map((r, i) =>
@@ -2247,10 +2254,10 @@ function detailTable(list, startIndex){
     CATS.map(c => '<td style="text-align:right">' + nf(r[c.key]) + '</td>').join('') +
     '<td style="text-align:right;font-weight:700">' + nf(r.total) + '</td>' +
     '<td style="text-align:right">' + nf(r.coupon) + '</td>' +
-    '<td style="text-align:right">' + (r.cancel > 0 ? nf(r.cancel) : '-') + '</td>' +
     '<td style="text-align:right">' + nf(r.cash) + '</td>' +
     '<td style="text-align:right">' + nf(r.transfer) + '</td>' +
     '<td style="text-align:right">' + nf(r.money) + '</td>' +
+    '<td style="text-align:right">' + (r.refund > 0 ? nf(r.refund) : '-') + '</td>' +
     '<td style="text-align:right">' + (r.refundAmt > 0 ? nf(r.refundAmt) : '-') + '</td>' +
     '<td style="text-align:right;font-weight:700">' + nf(r.net) + '</td></tr>'
   ).join('');
@@ -2261,10 +2268,10 @@ function detailTable(list, startIndex){
     CATS.map(c => '<td style="text-align:right">' + nf(sum(c.key)) + '</td>').join('') +
     '<td style="text-align:right">' + nf(sum('total')) + '</td>' +
     '<td style="text-align:right">' + nf(sum('coupon')) + '</td>' +
-    '<td style="text-align:right">' + nf(sum('cancel')) + '</td>' +
     '<td style="text-align:right">' + nf(sum('cash')) + '</td>' +
     '<td style="text-align:right">' + nf(sum('transfer')) + '</td>' +
     '<td style="text-align:right">' + nf(sum('money')) + '</td>' +
+    '<td style="text-align:right">' + nf(sum('refund')) + '</td>' +
     '<td style="text-align:right">' + nf(sum('refundAmt')) + '</td>' +
     '<td style="text-align:right">' + nf(sum('net')) + '</td>' +
   '</tr></tfoot>';
@@ -2304,13 +2311,13 @@ function buildDoc(){
     const catRows = CATS.map(c =>
       '<tr><td>' + c.label + '</td><td style="text-align:right">' + nf(a[c.key]) + '</td><td style="text-align:right">' + pct(a[c.key], a.total) + '</td></tr>'
     ).join('');
-    page1 += '<div class="sec">๑. สรุปปริมาณรถเข้าจอดก่อนเวลาเปิดทำการ</div>' +
+    page1 += '<div class="sec">1. สรุปปริมาณรถเข้าจอดก่อนเวลาเปิดทำการ</div>' +
       '<table>' +
         '<thead><tr><th style="width:55%;text-align:left">ประเภทผู้ใช้บริการ</th><th style="width:22%">จำนวน (คัน)</th><th style="width:23%">สัดส่วน</th></tr></thead>' +
         '<tbody>' + catRows + '</tbody>' +
         '<tfoot><tr style="background:#eef2ff;font-weight:800"><td>รวมทั้งสิ้น</td><td style="text-align:right">' + nf(a.total) + '</td><td style="text-align:right">100.0%</td></tr></tfoot>' +
       '</table>' +
-      '<div class="sec">๒. สรุปคูปองและรายรับที่นำส่งเงิน</div>' + financeTable(a);
+      '<div class="sec">2. สรุปคูปองและรายรับที่นำส่งเงิน</div>' + financeTable(a);
   }
 
   if (notes.length) page1 += '<div style="font-size:12.5px;color:#4b5563;margin-top:10px"><b>หมายเหตุ:</b> ' + notes.map(esc).join(' / ') + '</div>';
@@ -2322,7 +2329,7 @@ function buildDoc(){
   const det = (!fin && S.mode !== 'daily') ? detailRows(rows) : [];
   if (det.length > 1){
     const unit = (S.mode === 'yearly') ? 'รายเดือน' : 'รายวัน';
-    const secTitle = '๓. ตารางแนบท้าย : รายละเอียด' + unit + 'ในช่วงที่รายงาน';
+    const secTitle = '3. ตารางแนบท้าย : รายละเอียด' + unit + 'ในช่วงที่รายงาน';
     for (let i = 0; i < det.length; i += DETAIL_ROWS_PER_PAGE){
       const slice = det.slice(i, i + DETAIL_ROWS_PER_PAGE);
       const part  = (det.length > DETAIL_ROWS_PER_PAGE)
@@ -2440,7 +2447,7 @@ async function exportDoc(type){
    ผลข้างเคียงคืออ่าน response ไม่ได้ จึงยืนยันผลด้วยวิธี "ดึงข้อมูลใหม่แล้วตรวจว่าแถวขึ้นจริงหรือยัง"
    ซึ่งเชื่อถือได้กว่าการเดาจากการที่ fetch ไม่ throw
 --------------------------------------------------------------------------------------------- */
-const EN_NUM = ['enNoStart','enNoEnd','enCoupon','enCancel','enPrice','enCash','enTransfer','enRefund','enRefundAmt'];
+const EN_NUM = ['enNoStart','enNoEnd','enCoupon','enPrice','enCash','enTransfer','enRefund','enRefundAmt'];
 const enVal  = (id) => num($(id).value);
 
 function buildEntryFields(){
@@ -2450,7 +2457,14 @@ function buildEntryFields(){
   ).join('');
   CATS.forEach(c => $('en_' + c.key).oninput = onEntryInput);
   EN_NUM.forEach(id => $(id).oninput = onEntryInput);
-  $('enDate').onchange = onEntryInput;
+  $('enRecorder').oninput = onEntryInput;
+  $('enNote').oninput = onEntryInput;
+  // เปลี่ยนวันที่ = โหลดข้อมูลของวันนั้นขึ้นมาแสดงใหม่ทั้งฟอร์ม
+  $('enDate').onchange = () => {
+    const d = parseDate($('enDate').value);
+    if (d) loadEntryRow(d);
+    onEntryInput({ target:{ id:'' } });
+  };
 }
 
 /** คำนวณค่าที่ derived ได้ระหว่างพิมพ์ แล้วแสดงผลตรวจทานทันที */
@@ -2472,21 +2486,14 @@ function onEntryInput(e){
   }
   $('enNet').value = nf(money - enVal('enRefundAmt'));
 
-  // เตือนถ้าวันที่เลือกมีข้อมูลอยู่แล้ว จะได้รู้ตัวว่ากำลังจะเขียนทับ
-  const d  = parseDate($('enDate').value);
-  const hit = rowByDate(d);
-  const ex = (hit && hit.hasData) ? hit : null;
-  $('enDateHint').classList.toggle('hidden', !ex);
-  if (ex) $('enDateHint').innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>วันนี้มีข้อมูลอยู่แล้ว (' +
-    nf(ex.total) + ' คัน / ' + nf(ex.money) + ' บาท) — การบันทึกจะเขียนทับแถวเดิม';
-
+  renderEntryMode();
   renderEntryCheck();
 }
 
 /** ตรวจทานร่างก่อนส่ง โดยประกอบข้อมูลให้มีหน้าตาเหมือน aggregate() แล้วใช้ buildChecks() ตัวเดิม */
 function entryDraft(){
   // ต้องมีครบทุกฟิลด์ที่ buildChecks() อ่าน ไม่งั้นข้อตรวจบางข้อจะแสดง undefined
-  const o = { total:0, diff:0, coupon:enVal('enCoupon'), cancel:enVal('enCancel'), price:enVal('enPrice'),
+  const o = { total:0, diff:0, coupon:enVal('enCoupon'), price:enVal('enPrice'),
               cash:enVal('enCash'), transfer:enVal('enTransfer'), moneyOnly:false, priceMixed:false,
               ranges:[], rangeDerived:false, cStart:0, cEnd:0,
               moneyCol:0, hasMoneyCol:false, gaps:0, gapCount:0,
@@ -2508,8 +2515,8 @@ function entryDraft(){
   }
   if (o.price > 0 && o.coupon > 0 && o.money > 0){
     o.checkedMoney = 1;
-    const gross = o.coupon * o.price, netv = (o.coupon - o.cancel) * o.price;
-    if (gross !== o.money && netv !== o.money)
+    const gross = o.coupon * o.price;
+    if (gross !== o.money)
       o.badMoney.push('วันนี้ (ควรได้ ' + nf(gross) + ' / กรอก ' + nf(o.money) + ')');
   }
   return o;
@@ -2538,17 +2545,123 @@ function renderEntryCheck(){
   }
 }
 
+/* รายการช่องทั้งหมดในฟอร์ม: [id ของช่อง, ชื่อคีย์ที่ส่งให้ backend]
+   ประกาศไว้ที่เดียวเพื่อให้การ "โหลดข้อมูลเดิม" "เทียบว่าอะไรถูกแก้" และ "ส่งข้อมูล"
+   วนใช้รายการชุดเดียวกัน ถ้าเพิ่มช่องใหม่ในอนาคตจะไม่มีทางลืมแก้จุดใดจุดหนึ่ง */
+const ENTRY_FIELDS = [
+  ['enCoupon','coupon'], ['enPrice','price'],
+  ['enCash','cash'], ['enTransfer','transfer'],
+  ['enRefund','refund'], ['enRefundAmt','refundAmt'],
+  ['enRecorder','recorder'], ['enNote','note']
+];
+
+/**
+ * เติมค่าจากแถวเดิมของวันที่เลือกลงในฟอร์ม
+ * คืน true ถ้าเป็นการแก้ไขของเดิม / false ถ้าเป็นการเพิ่มวันใหม่
+ */
+function loadEntryRow(d){
+  const hit = rowByDate(d);
+  const has = !!(hit && hit.hasData);
+
+  if (has){
+    CATS.forEach(c => $('en_' + c.key).value = hit[c.key] || '');
+    $('enCoupon').value    = hit.coupon    || '';
+    $('enPrice').value     = hit.price     || '';
+    $('enCash').value      = hit.cash      || '';
+    $('enTransfer').value  = hit.transfer  || '';
+    $('enRefund').value    = hit.refund    || '';
+    $('enRefundAmt').value = hit.refundAmt || '';
+    $('enRecorder').value  = hit.recorder  || '';
+    $('enNote').value      = hit.note      || '';
+    // ช่วงเลขคูปองเก็บในชีตเป็นข้อความ ต้องแยกกลับเป็นเลขต้น-เลขท้าย
+    if (hit.ranges && hit.ranges.length){
+      $('enNoStart').value = hit.ranges[0].s || '';
+      $('enNoEnd').value   = hit.rangeDerived ? '' : (hit.ranges[hit.ranges.length-1].e || '');
+    } else { $('enNoStart').value = ''; $('enNoEnd').value = ''; }
+  } else {
+    // วันใหม่: ล้างช่องข้อมูลรายวัน แต่คงราคาตั๋วและชื่อผู้บันทึกจากวันล่าสุดไว้ให้
+    CATS.forEach(c => $('en_' + c.key).value = '');
+    ['enCoupon','enCash','enTransfer','enRefund','enRefundAmt','enNoStart','enNoEnd','enNote']
+      .forEach(id => $(id).value = '');
+    const last = latestDataRow();
+    if (last){
+      if (last.price > 0 && !$('enPrice').value) $('enPrice').value = last.price;
+      if (last.recorder && !$('enRecorder').value) $('enRecorder').value = last.recorder.split('/')[0].trim();
+    }
+  }
+
+  // เก็บภาพค่าตั้งต้นไว้เทียบตอนบันทึก — จะได้ส่งเฉพาะช่องที่ถูกแก้จริง
+  S.entryBase = has ? snapshotEntry() : null;
+  return has;
+}
+
+/** ภาพค่าปัจจุบันของทุกช่องในฟอร์ม (ใช้เทียบหาการเปลี่ยนแปลง) */
+function snapshotEntry(){
+  const o = {};
+  CATS.forEach(c => o[c.key] = enVal('en_' + c.key));
+  ENTRY_FIELDS.forEach(([id, key]) => {
+    o[key] = (key === 'recorder' || key === 'note') ? $(id).value.trim() : enVal(id);
+  });
+  o.couponNo = couponNoText();
+  return o;
+}
+
+/** ข้อความช่วงเลขคูปองที่จะเขียนลงชีต */
+function couponNoText(){
+  const st = enVal('enNoStart'), en = enVal('enNoEnd');
+  return (st > 0 && en >= st) ? (st + '-' + en) : (st > 0 ? String(st) : '');
+}
+
+/** คีย์ที่ถูกแก้ไปจากค่าตั้งต้น — ว่างเปล่าแปลว่าไม่มีอะไรเปลี่ยน */
+function changedKeys(){
+  if (!S.entryBase) return null;               // วันใหม่: เขียนทุกช่อง
+  const now = snapshotEntry(), out = [];
+  Object.keys(now).forEach(k => { if (String(now[k]) !== String(S.entryBase[k])) out.push(k); });
+  return out;
+}
+
+/** แถบสถานะ: กำลังเพิ่มใหม่ หรือแก้ของเดิม และแก้อะไรไปแล้วบ้าง */
+function renderEntryMode(){
+  const box = $('enMode'), d = parseDate($('enDate').value);
+  const hit = rowByDate(d);
+  const ex  = (hit && hit.hasData) ? hit : null;
+
+  if (!ex){
+    box.className = 'mt-2 text-[11.5px] rounded-lg px-3 py-2 border border-sky-200 bg-sky-50 text-sky-800';
+    box.innerHTML = '<b><i class="fa-solid fa-circle-plus mr-1"></i>เพิ่มข้อมูลวันใหม่</b> — ยังไม่มีข้อมูลของวันนี้ในชีต ระบบจะเพิ่มเป็นแถวใหม่ต่อท้าย';
+    $('entryTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-indigo-500 mr-1"></i> เพิ่มข้อมูลประจำวัน';
+    return;
+  }
+
+  $('entryTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-amber-500 mr-1"></i> แก้ไขข้อมูลวันที่ ' + thShort(d);
+  const ch = changedKeys() || [];
+  if (!ch.length){
+    box.className = 'mt-2 text-[11.5px] rounded-lg px-3 py-2 border border-amber-200 bg-amber-50 text-amber-800';
+    box.innerHTML = '<b><i class="fa-solid fa-pen mr-1"></i>โหมดแก้ไข</b> — แสดงข้อมูลเดิมของวันนี้ (' +
+      nf(ex.total) + ' คัน / คูปอง ' + nf(ex.coupon) + ' ใบ / ' + nf(ex.money) +
+      ' บาท) แก้เฉพาะช่องที่ต้องการแล้วกดบันทึก';
+  } else {
+    box.className = 'mt-2 text-[11.5px] rounded-lg px-3 py-2 border border-indigo-300 bg-indigo-50 text-indigo-800';
+    box.innerHTML = '<b><i class="fa-solid fa-pen-to-square mr-1"></i>จะบันทึกทับ ' + nf(ch.length) + ' ช่อง:</b> ' +
+      esc(ch.map(k => ENTRY_LABEL[k] || k).join(', ')) +
+      '<br><span class="text-indigo-600">ช่องอื่นในแถวเดิมจะไม่ถูกแตะต้อง</span>';
+  }
+}
+
+/** ชื่อไทยของแต่ละคีย์ ใช้แสดงในแถบสถานะให้ผู้ใช้อ่านรู้เรื่อง */
+const ENTRY_LABEL = {
+  vip:'VIP Seacon', monthly:'ลูกค้ารายเดือน', shop:'พนักงานร้านค้า', staff:'พนักงาน Seacon',
+  revenue:'สรรพากร', general:'ลูกค้าทั่วไป', coupon:'จำนวนคูปอง', couponNo:'เลขที่คูปอง',
+  price:'ราคาตั๋ว', cash:'เงินสด', transfer:'เงินโอน',
+  refund:'คูปองคืนย้อนหลัง', refundAmt:'ยอดเงินคืน', recorder:'ผู้บันทึกข้อมูล', note:'หมายเหตุ'
+};
+
 function openEntry(){
   buildEntryFields();
   // ตั้งค่าเริ่มต้นเป็นวันที่กำลังดูอยู่ (โหมดรายวัน) หรือวันนี้ — ลดการกรอกซ้ำของผู้ใช้
   const d = (S.mode === 'daily') ? S.anchor : new Date();
   $('enDate').value = ymd(d);
-  // เติมราคาตั๋วและชื่อผู้บันทึกจากข้อมูลล่าสุด เพราะสองค่านี้แทบไม่เปลี่ยนในแต่ละวัน
-  const last = latestDataRow();
-  if (last){
-    if (last.price > 0) $('enPrice').value = last.price;
-    if (last.recorder)  $('enRecorder').value = last.recorder.split('/')[0].trim();
-  }
+  loadEntryRow(d);
   onEntryInput({ target:{ id:'' } });
   $('entryModal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -2562,7 +2675,8 @@ function clearEntry(){
   $('enNet').value = '';
   $('enNote').value = '';
   onEntryInput({ target:{ id:'' } });
-  toast('ล้างข้อมูลในฟอร์มแล้ว');
+  // ล้างฟอร์มไม่ยกเลิกโหมดแก้ไข — ยังเทียบกับค่าเดิมอยู่ ผู้ใช้จึงเห็นในแถบสถานะว่ากำลังจะล้างค่าอะไรบ้าง
+  toast('ล้างค่าในฟอร์มแล้ว (ยังไม่บันทึก)');
 }
 
 async function submitEntry(){
@@ -2582,9 +2696,7 @@ async function submitEntry(){
     date    : ymd(d),                       // ส่งเป็น ค.ศ. YYYY-MM-DD แล้วให้ฝั่ง Apps Script แปลงเป็น พ.ศ. ตามรูปแบบชีต
     total   : draft.total,
     coupon  : draft.coupon,
-    couponNo: (enVal('enNoStart') > 0 && enVal('enNoEnd') >= enVal('enNoStart'))
-                ? (enVal('enNoStart') + '-' + enVal('enNoEnd')) : '',
-    cancel  : draft.cancel,
+    couponNo: couponNoText(),
     price   : draft.price,
     cash    : draft.cash,
     transfer: draft.transfer,
@@ -2596,6 +2708,20 @@ async function submitEntry(){
     note    : $('enNote').value.trim()
   };
   CATS.forEach(c => payload[c.key] = draft[c.key]);
+
+  // ---- โหมดแก้ไข: ส่งเฉพาะช่องที่ถูกแก้จริง ----
+  // ถ้าส่งทุกช่องเหมือนการเพิ่มใหม่ ช่องที่ผู้ใช้ไม่ได้แตะจะถูกเขียนทับด้วยค่าที่ฟอร์มคำนวณเอง
+  // (เช่น total ที่มาจากผลรวมประเภทรถ) ซึ่งอาจไม่ตรงกับที่เจ้าหน้าที่ตั้งใจกรอกไว้เดิม
+  const changed = changedKeys();
+  if (changed){
+    if (!changed.length){ toast('ยังไม่ได้แก้ไขอะไร จึงไม่มีอะไรต้องบันทึก', 'warn'); return; }
+    payload.only = changed.slice();
+    // ถ้ามีการแก้ประเภทรถหรือยอดเงิน ต้องเขียนค่าที่คำนวณต่อเนื่องกันไปด้วย ไม่งั้นชีตจะขัดกันเอง
+    if (changed.some(k => CATS.some(c => c.key === k))) payload.only.push('total');
+    if (changed.some(k => k === 'cash' || k === 'transfer')) payload.only.push('money');
+    if (changed.some(k => k === 'cash' || k === 'transfer' || k === 'refundAmt')) payload.only.push('net');
+    payload.mode = 'edit';
+  }
 
   const btn = $('btnEntrySubmit');
   btn.disabled = true;
@@ -2615,13 +2741,16 @@ async function submitEntry(){
     await init(true);
 
     const saved = rowByDate(d);
-    if (saved && saved.hasData && saved.money === payload.money){
+    // ในโหมดแก้ไขอาจไม่ได้แตะยอดเงิน จึงยืนยันผลด้วย "แถวมีข้อมูล" อย่างเดียวก็พอ
+    const okSaved = saved && saved.hasData &&
+                    (payload.mode === 'edit' ? true : saved.money === payload.money);
+    if (okSaved){
       closeEntry();
       // เด้งไปดูวันที่เพิ่งบันทึก เพื่อให้ตรวจทานผลได้ทันทีโดยไม่ต้องกดเลือกเอง
       S.mode = 'daily'; S.anchor = d;
       document.querySelectorAll('.tabbtn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'daily'));
-      render();
-      toast('บันทึกข้อมูลวันที่ ' + thShort(d) + ' เรียบร้อยแล้ว');
+      renderPicker(); render();
+      toast((payload.mode === 'edit' ? 'แก้ไขข้อมูลวันที่ ' : 'บันทึกข้อมูลวันที่ ') + thShort(d) + ' เรียบร้อยแล้ว');
     } else {
       toast('ส่งข้อมูลแล้ว แต่ยังตรวจไม่พบในชีต — กรุณากดรีเฟรชอีกครั้งเพื่อยืนยัน', 'warn');
     }
@@ -2847,6 +2976,12 @@ function bindEvents(){
   $('btnEntry').onclick       = safe('openEntry',  openEntry);
   $('btnEntryClose').onclick  = closeEntry;
   $('btnEntryClear').onclick  = safe('clearEntry', clearEntry);
+  $('btnEntryReload').onclick = safe('reloadEntry', () => {
+    const d = parseDate($('enDate').value);
+    if (!d){ toast('กรุณาเลือกวันที่ก่อน', 'warn'); return; }
+    loadEntryRow(d); onEntryInput({ target:{ id:'' } });
+    toast('ดึงค่าเดิมของวันที่ ' + thShort(d) + ' กลับมาแล้ว');
+  });
   $('btnEntrySubmit').onclick = safe('submitEntry', submitEntry);
   $('btnPdf').onclick      = safe('pdf',  () => exportDoc('pdf'));
   $('btnJpeg').onclick     = safe('jpeg', () => exportDoc('jpeg'));
