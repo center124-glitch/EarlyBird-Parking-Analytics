@@ -454,7 +454,7 @@
 <button id="btnEntry" class="fab no-print"><i class="fa-solid fa-pen-to-square mr-2"></i>บันทึกข้อมูล</button>
 
 <footer class="text-center text-xs text-gray-400 py-6">
-  EarlyBird Parking Analytics v22 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
+  EarlyBird Parking Analytics v23 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
 </footer>
 
 <div id="docModal" class="hidden fixed inset-0 bg-black/60 z-50 overflow-auto p-4">
@@ -603,7 +603,7 @@
 
 <script>
 /* ==========================================================================
-   EarlyBird Parking Analytics v22.0
+   EarlyBird Parking Analytics v23.0
    ระบบวิเคราะห์ยอดรถเข้าจอดก่อนเวลาศูนย์การค้าเปิดทำการ
    v10: การ์ดสรุป LINE เต็มขอบไม่มีแถบขาวข้าง + ดึงชื่อผู้บันทึกจากชีต + เปลี่ยนชื่อหัวใบรายงานแบบเต็ม
    v11: - ย่อกรอบตัวกรองให้เป็นแถบเดียว ไม่ให้ดูใหญ่กว่าการ์ด KPI
@@ -666,6 +666,10 @@
         [แก้]  ตาราง "ข้อมูลรายวันในช่วงที่เลือก" เปลี่ยนคอลัมน์เป็น
                  เลขที่คูปอง / รวมยอดเงินส่ง / คืนย้อนหลัง / ยอดสุทธิ
         [แก้]  เปลี่ยนเลขไทยในหัวข้อเอกสารเป็นเลขอารบิกทั้งหมด
+   v23: [แก้]  ชื่อใบรายงานฉบับเต็ม -> "รายงานยอดรถและค่าจอดรถก่อนศูนย์เปิดทำการ"
+        [แก้]  ช่องลงนามใบฉบับเต็ม -> "ผู้จัดทำรายงาน" พร้อมชื่อและตำแหน่งจาก CONFIG
+        [ลบ]   แถบท้ายเอกสาร (เลขที่เอกสาร/ชื่อระบบ/แหล่งข้อมูล/เวลาพิมพ์)
+               คงไว้เฉพาะคำเตือนเมื่อใช้ข้อมูลตัวอย่าง
    ========================================================================== */
 
 /* ---------------------- 1) CONFIG ---------------------- */
@@ -718,8 +722,12 @@ const CONFIG = {
      ถ้าลืมกรอกราคาแล้วข้อนี้กลายเป็นสีเทา เท่ากับเสียด่านตรวจที่สำคัญที่สุดไปทั้งวัน
      ระบบจะระบุไว้ในผลตรวจเสมอว่าใช้ค่าสำรอง ไม่ใช่ค่าจากชีต — ตั้งเป็น 0 เพื่อปิดการใช้ค่าสำรอง */
   DEFAULT_PRICE: 60,
-  DEPT     : 'แผนกลานจอดรถและจราจร',
-  ORG      : 'ศูนย์การค้าซีคอนบางแค'
+  DEPT     : 'แผนกลานจอดและจราจร',
+  ORG      : 'ศูนย์การค้าซีคอนบางแค',
+  /* ผู้ลงนามท้ายใบรายงานฉบับเต็ม — ประกาศไว้ที่เดียว เปลี่ยนตัวผู้ลงนามแก้จุดนี้จุดเดียว
+     (ใบนำส่งเงินใช้ชื่อ "ผู้บันทึกข้อมูล" จากชีตตามเดิม เพราะเป็นคนละบทบาทกัน) */
+  REPORT_BY   : 'นายนิรันดร์ ผันกลาง',
+  REPORT_ROLE : 'หัวหน้าแผนกลานจอดและจราจร'
 };
 
 /* ---------------------- 1.1) ชื่อเอกสารกลาง (Single source of truth) ----------------------
@@ -727,7 +735,7 @@ const CONFIG = {
    เหตุผล: เดิมไฟล์ที่บันทึกออกมาชื่อ "ใบนำส่งเงิน_..." เหมือนกันทั้งสองแบบ
    เวลาเก็บแฟ้มหรือส่งให้ผู้ตรวจทานจึงแยกไม่ออกว่าไฟล์ไหนคือใบแบบเต็ม ไฟล์ไหนคือใบเฉพาะรายรับ */
 const DOC_TITLE = {
-  full: 'ใบรายงานรถยนต์และนำส่งค่าจอดรถก่อนศูนย์เปิดทำการ',
+  full: 'รายงานยอดรถและค่าจอดรถก่อนศูนย์เปิดทำการ',
   fin : 'ใบนำส่งเงินค่าจอดรถก่อนเวลาทำการ'
 };
 const DOC_SUBTITLE = {
@@ -2101,15 +2109,18 @@ function metaTable(a, dateLine, rows){
 function signBlock(rows, fin){
   const rec  = recorderNames(rows);
   const DOTS = '.................................................';
-  const line = (label, name) =>
+  const line = (label, name, role) =>
     '<div class="sigline">ลงชื่อ ......................................................<br>' +
-    '( ' + (esc(name) || DOTS) + ' )<br><b>' + label + '</b><br>' +
-    'วันที่ ......... / ......... / .........</div>';
+    '( ' + (esc(name) || DOTS) + ' )<br><b>' + esc(label) + '</b>' +
+    (role ? '<br><span style="font-size:11.5px;color:#4b5563">' + esc(role) + '</span>' : '') +
+    '<br>วันที่ ......... / ......... / .........</div>';
 
   if (!fin){
+    // ใบรายงานฉบับเต็มลงนามโดยผู้จัดทำรายงานคนเดียว จึงจัดช่องไว้กึ่งกลางหน้า
     return '<div style="margin-top:46px;display:table;width:100%">' +
       '<div style="display:table-cell;width:25%"></div>' +
-      '<div style="display:table-cell;width:50%">' + line('ผู้จัดทำ / ผู้นำส่งเงิน', '') + '</div>' +
+      '<div style="display:table-cell;width:50%">' +
+        line('ผู้จัดทำรายงาน', CONFIG.REPORT_BY, CONFIG.REPORT_ROLE) + '</div>' +
       '<div style="display:table-cell;width:25%"></div>' +
     '</div>';
   }
@@ -2279,15 +2290,16 @@ function detailTable(list, startIndex){
   return '<table class="dtable">' + head + '<tbody>' + body + '</tbody>' + foot + '</table>';
 }
 
+/**
+ * แถบท้ายเอกสาร
+ * ตามที่หน่วยงานกำหนด: ไม่แสดงเลขที่เอกสาร ชื่อระบบ แหล่งข้อมูล หรือเวลาพิมพ์
+ * (ข้อมูลเหล่านี้ยังอยู่ในหัวเอกสารและในชื่อไฟล์ที่บันทึก จึงไม่สูญหาย)
+ * คงไว้เฉพาะคำเตือนกรณีใช้ข้อมูลตัวอย่าง เพราะปล่อยให้เอกสารทดสอบดูเหมือนของจริงเป็นความเสี่ยง
+ */
 function docFooterBar(){
-  return '<div style="margin-top:22px;font-size:10.5px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:7px">' +
-    '<table style="border:none"><tr>' +
-      '<td style="border:none;padding:0">เอกสารเลขที่ ' + docNo() + ' • จัดทำโดยระบบ EarlyBird Parking Analytics' +
-        (S.isDemo ? ' <b style="color:#b45309">(ข้อมูลตัวอย่างเพื่อการทดสอบ)</b>' : '') + '</td>' +
-      '<td style="border:none;padding:0;text-align:right">แหล่งข้อมูล: Google Sheets • พิมพ์เมื่อ ' +
-        thShort(new Date()) + ' ' + pad2(new Date().getHours()) + ':' + pad2(new Date().getMinutes()) + ' น.</td>' +
-    '</tr></table>' +
-  '</div>';
+  if (!S.isDemo) return '';
+  return '<div style="margin-top:22px;font-size:10.5px;color:#b45309;border-top:1px solid #e5e7eb;padding-top:7px">' +
+    '<b>(ข้อมูลตัวอย่างเพื่อการทดสอบ — ไม่ใช่เอกสารจริง)</b></div>';
 }
 
 function buildDoc(){
