@@ -274,18 +274,45 @@
   /* ใบนำส่งเงินคงพื้นขาวเสมอ เพราะต้องพิมพ์ลงกระดาษ */
   html.dark #docSheet{ background:#fff; color:#111827; }
 
+  /* ============================ การพิมพ์ ============================
+     ปัญหาเดิม 2 อย่าง:
+     1) ใช้ visibility:hidden ซ่อนทุกอย่าง — แต่ visibility ไม่ได้เอาพื้นที่ของ element ออก
+        แดชบอร์ดทั้งหน้าจึงยังกินความสูงอยู่ กลายเป็นหน้ากระดาษเปล่าต่อท้าย 2-3 แผ่น
+     2) กฎ body{background:#fff} แพ้ html.dark body{...} เพราะ specificity ต่ำกว่า
+        ในโหมดมืดพื้นหลังสีเข้มจึงถูกพิมพ์ออกมาเป็นแถบดำทึบเต็มหน้า
+     ทางแก้: ใช้ display:none ซ่อนพี่น้องของกล่องเอกสารจริง ๆ (พื้นที่หายไปด้วย)
+     และบังคับพื้นขาวด้วย !important ที่ทั้ง html และ body ครอบทุกธีม
+     -------------------------------------------------------------------
+     margin:0 ที่ @page ทำให้เบราว์เซอร์ซ่อนหัว/ท้ายกระดาษอัตโนมัติ (วันที่ เวลา URL เลขหน้า)
+     แล้วเราจัดระยะขอบเองด้วย padding ของ .dpage แทน */
   @media print{
-    body{ background:#fff; }
-    body *{ visibility:hidden; }
-    #docSheet, #docSheet *{ visibility:visible; }
-    #docModal{ position:static !important; background:none !important; padding:0 !important; overflow:visible !important; }
-    #docSheet{ position:absolute; left:0; top:0; width:100%; min-height:auto; box-shadow:none; padding:0; }
-    /* พิมพ์: ขึ้นหน้าใหม่ทุก .dpage และตัดเส้นประที่ใช้คั่นเฉพาะบนจอออก */
-    #docSheet .dpage{ width:100%; min-height:auto; padding:0; page-break-after:always; }
-    #docSheet .dpage:last-child{ page-break-after:auto; }
-    #docSheet .dpage + .dpage{ margin-top:0; border-top:none; }
+    html, body, html.dark, html.dark body{
+      background:#fff !important; background-image:none !important;
+    }
     .no-print{ display:none !important; }
-    @page{ size:A4 portrait; margin:12mm; }
+
+    /* ซ่อนเฉพาะตอนที่หน้าต่างเอกสารเปิดอยู่ ถ้าผู้ใช้กด Ctrl+P จากหน้าแดชบอร์ดตรง ๆ
+       จะยังพิมพ์หน้าจอได้ตามปกติ ไม่ใช่ได้กระดาษเปล่า */
+    html.doc-open body > *{ display:none !important; }
+    html.doc-open body > #docModal{
+      display:block !important; position:static !important; inset:auto !important;
+      background:none !important; padding:0 !important; overflow:visible !important; }
+    html.doc-open #docModal > div{ max-width:none !important; margin:0 !important; }
+
+    #docSheet{ width:100% !important; box-shadow:none !important; }
+    /* พิมพ์: ขึ้นหน้าใหม่ทุก .dpage และตัดเส้นประที่ใช้คั่นเฉพาะบนจอออก */
+    #docSheet .dpage{
+      width:100% !important; min-height:auto !important; box-shadow:none !important;
+      padding:12mm 10mm !important; box-sizing:border-box !important;
+      page-break-after:always; break-after:page; }
+    #docSheet .dpage:last-child{ page-break-after:auto; break-after:auto; }
+    #docSheet .dpage + .dpage{ margin-top:0 !important; border-top:none !important; }
+    /* เอกสารต้องเป็นตัวอักษรดำบนพื้นขาวเสมอ แม้ผู้ใช้กำลังอยู่ในโหมดมืด */
+    html.dark #docSheet, html.dark #docSheet *{ color:#111827 !important; }
+    /* คงพื้นสีอ่อนของหัวตาราง/กล่องยอดเงินไว้ ไม่งั้นเอกสารจะอ่านยากเมื่อพิมพ์ */
+    #docSheet, #docSheet *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+
+    @page{ size:A4 portrait; margin:0; }
   }
 </style>
 </head>
@@ -468,7 +495,7 @@
 <button id="btnEntry" class="fab no-print"><i class="fa-solid fa-pen-to-square mr-2"></i>บันทึกข้อมูล</button>
 
 <footer class="text-center text-xs text-gray-400 py-6">
-  EarlyBird Parking Analytics v25 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
+  EarlyBird Parking Analytics v26 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
 </footer>
 
 <div id="docModal" class="hidden fixed inset-0 bg-black/60 z-50 overflow-auto p-4">
@@ -617,7 +644,7 @@
 
 <script>
 /* ==========================================================================
-   EarlyBird Parking Analytics v25.0
+   EarlyBird Parking Analytics v26.0
    ระบบวิเคราะห์ยอดรถเข้าจอดก่อนเวลาศูนย์การค้าเปิดทำการ
    v10: การ์ดสรุป LINE เต็มขอบไม่มีแถบขาวข้าง + ดึงชื่อผู้บันทึกจากชีต + เปลี่ยนชื่อหัวใบรายงานแบบเต็ม
    v11: - ย่อกรอบตัวกรองให้เป็นแถบเดียว ไม่ให้ดูใหญ่กว่าการ์ด KPI
@@ -688,6 +715,11 @@
                ย้ายการคุมสีทั้งพื้นและตัวอักษรมาไว้ใน CSS คลาสเดียว แล้วเขียนทับในโหมดมืด
         [ลบ]   ใบนำส่งเงิน: ตัดแถบตัวเลขสรุป 3 ช่องด้านบน, บรรทัดยอดรถเข้ารวม,
                หมายเหตุจากชีต และบล็อกผลตรวจทานอัตโนมัติออก (ใบฉบับเต็มยังมีครบ)
+   v26: [แก้]  การพิมพ์: เดิมใช้ visibility:hidden ซึ่งไม่เอาพื้นที่ของแดชบอร์ดออก
+               จึงได้กระดาษเปล่าต่อท้าย และในโหมดมืดพื้นหลังเข้มถูกพิมพ์เป็นแถบดำทึบ
+               -> เปลี่ยนเป็น display:none + บังคับพื้นขาวครอบทุกธีม + ธง doc-open
+        [แก้]  @page margin:0 เพื่อให้เบราว์เซอร์ซ่อนหัว/ท้ายกระดาษ (วันที่ เวลา URL เลขหน้า)
+               แล้วจัดระยะขอบเองด้วย padding ของ .dpage
    v25: [แก้]  ข้อความและการ์ด LINE เลิกใช้อีโมจิ 📅 ซึ่งบนมือถือวาดเป็นปฏิทินที่มีตัวเลข
                วันที่ติดมาในตัว ทำให้เข้าใจผิดว่ารายงานรายเดือน/ปี เป็นยอดของวันนั้น
                เปลี่ยนเป็น 📌/📊 (ไม่มีตัวเลข) และเติมคำบอกประเภทช่วงไว้หน้าตัวเลขเสมอ
@@ -2346,6 +2378,18 @@ function docFooterBar(){
     '<b>(ข้อมูลตัวอย่างเพื่อการทดสอบ — ไม่ใช่เอกสารจริง)</b></div>';
 }
 
+/**
+ * เปิด/ปิดหน้าต่างเอกสาร พร้อมตั้งธง doc-open ไว้ที่ <html>
+ * ธงนี้เป็นตัวบอก CSS ตอนพิมพ์ว่า "ให้ซ่อนแดชบอร์ดแล้วพิมพ์เฉพาะเอกสาร"
+ * รวมไว้เป็นฟังก์ชันเดียวเพราะหน้าต่างนี้ปิดได้หลายทาง (ปุ่มปิด / Esc / คลิกพื้นหลัง / ล็อกหน้าจอ)
+ * ถ้าลืมถอดธงทางใดทางหนึ่ง การกด Ctrl+P ครั้งถัดไปจะได้กระดาษเปล่า
+ */
+function openDocModal(open){
+  $('docModal').classList.toggle('hidden', !open);
+  document.documentElement.classList.toggle('doc-open', !!open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+
 function buildDoc(){
   const view = currentView(), rows = view.rows, a = view.agg, r = currentRange();
   const dateLine = (S.mode === 'daily') ? thFull(r.from) : thShort(r.from) + ' ถึง ' + thShort(r.to);
@@ -2955,7 +2999,7 @@ function resetIdle(){
   S.idleTimer = setTimeout(() => {
     if (S.locked) return;
     // ปิดหน้าต่างเอกสาร/ตรวจสอบที่เปิดค้างไว้ก่อนล็อก เพื่อไม่ให้ข้อมูลโผล่ตอนปลดล็อก
-    $('docModal').classList.add('hidden');
+    openDocModal(false);
     $('dbgModal').classList.add('hidden');
     $('cardModal').classList.add('hidden');
     showSplash('lock');
@@ -3006,7 +3050,7 @@ function bindEvents(){
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     $('dbgModal').classList.add('hidden');
-    $('docModal').classList.add('hidden');
+    openDocModal(false);
     $('cardModal').classList.add('hidden');
     document.body.style.overflow = '';
   });
@@ -3017,7 +3061,7 @@ function bindEvents(){
   });
   $('docModal').addEventListener('click', (e) => {
     if (e.target !== $('docModal')) return;
-    $('docModal').classList.add('hidden');
+    openDocModal(false);
     document.body.style.overflow = '';
   });
   $('btnCopyLine').onclick = safe('copyLine', copyLine);
@@ -3030,10 +3074,9 @@ function bindEvents(){
   $('btnDoc').onclick      = safe('openDoc', () => {
     if (!filteredRows().some(r => r.hasData)){ toast('ช่วงเวลาที่เลือกยังไม่มีข้อมูล จึงยังออกใบนำส่งเงินไม่ได้', 'warn'); return; }
     buildDoc();
-    $('docModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    openDocModal(true);
   });
-  $('btnCloseDoc').onclick = () => { $('docModal').classList.add('hidden'); document.body.style.overflow = ''; };
+  $('btnCloseDoc').onclick = () => openDocModal(false);
   $('btnPrint').onclick    = safe('print', () => window.print());
   $('btnEntry').onclick       = safe('openEntry',  openEntry);
   $('btnEntryClose').onclick  = closeEntry;
