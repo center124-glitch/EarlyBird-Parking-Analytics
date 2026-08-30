@@ -505,7 +505,7 @@
 <button id="btnEntry" class="fab no-print"><i class="fa-solid fa-pen-to-square mr-2"></i>บันทึกข้อมูล</button>
 
 <footer class="text-center text-xs text-gray-400 py-6">
-  EarlyBird Parking Analytics v30 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
+  EarlyBird Parking Analytics v31 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
 </footer>
 
 <div id="docModal" class="hidden fixed inset-0 bg-black/60 z-50 overflow-auto p-4">
@@ -522,7 +522,7 @@
       <div class="flex flex-wrap gap-2">
         <button id="btnPrint" class="flex-1 bg-white text-gray-700 font-semibold px-3 py-2 rounded-xl text-sm whitespace-nowrap"><i class="fa-solid fa-print mr-1"></i> พิมพ์ / บันทึก PDF</button>
         <button id="btnPdf" class="flex-1 bg-rose-600 text-white font-semibold px-3 py-2 rounded-xl text-sm whitespace-nowrap"><i class="fa-solid fa-file-pdf mr-1"></i> ดาวน์โหลด PDF</button>
-        <button id="btnJpeg" class="flex-1 bg-amber-500 text-white font-semibold px-3 py-2 rounded-xl text-sm whitespace-nowrap"><i class="fa-solid fa-image mr-1"></i> บันทึก JPEG</button>
+        <button id="btnJpeg" class="flex-1 bg-amber-500 text-white font-semibold px-3 py-2 rounded-xl text-sm whitespace-nowrap"><i class="fa-solid fa-image mr-1"></i> บันทึก JPEG (แยกหน้า)</button>
         <button id="btnCloseDoc" class="bg-gray-800 text-white font-semibold px-4 py-2 rounded-xl text-sm"><i class="fa-solid fa-xmark mr-1"></i> ปิด</button>
       </div>
     </div>
@@ -659,7 +659,7 @@
 
 <script>
 /* ==========================================================================
-   EarlyBird Parking Analytics v30.0
+   EarlyBird Parking Analytics v31.0
    ระบบวิเคราะห์ยอดรถเข้าจอดก่อนเวลาศูนย์การค้าเปิดทำการ
    v10: การ์ดสรุป LINE เต็มขอบไม่มีแถบขาวข้าง + ดึงชื่อผู้บันทึกจากชีต + เปลี่ยนชื่อหัวใบรายงานแบบเต็ม
    v11: - ย่อกรอบตัวกรองให้เป็นแถบเดียว ไม่ให้ดูใหญ่กว่าการ์ด KPI
@@ -730,6 +730,10 @@
                ย้ายการคุมสีทั้งพื้นและตัวอักษรมาไว้ใน CSS คลาสเดียว แล้วเขียนทับในโหมดมืด
         [ลบ]   ใบนำส่งเงิน: ตัดแถบตัวเลขสรุป 3 ช่องด้านบน, บรรทัดยอดรถเข้ารวม,
                หมายเหตุจากชีต และบล็อกผลตรวจทานอัตโนมัติออก (ใบฉบับเต็มยังมีครบ)
+   v31: [แก้]  บันทึก JPEG แยกเป็นไฟล์ละหน้า (เดิมต่อเป็นภาพยาวแผ่นเดียว)
+               ชื่อไฟล์ต่อท้ายด้วย _หน้า1-จาก-3 เรียงลำดับถูกต้องเมื่อ sort ในโฟลเดอร์
+               เว้นจังหวะระหว่างไฟล์ 700ms กันเบราว์เซอร์บล็อกการดาวน์โหลดหลายไฟล์
+               ใช้ toBlob (ประหยัดหน่วยความจำ) พร้อม fallback เป็น dataURL
    v30: [ลบ]   "หมายเหตุ" พร้อมรายละเอียด ออกจากใบรายงานทั้งแบบเต็มและแบบย่อ
         [ลบ]   คำว่า "ฉบับย่อ" ใต้หัวเรื่อง — แบบเต็มกับแบบย่อใช้คำบรรยายเดียวกัน
         [เก็บกวาด] ลบฟังก์ชันที่ไม่ถูกเรียกแล้วออก (docCheckNote, recorderNamesAll)
@@ -2608,6 +2612,43 @@ async function captureDocPages(){
   return out;
 }
 
+/**
+ * บันทึก canvas หลายใบเป็นไฟล์ JPEG แยกหน้า
+ *
+ * ข้อควรระวังของเบราว์เซอร์: การสั่งดาวน์โหลดรัว ๆ ในคลิกเดียวจะถูกบล็อก
+ * (Chrome ขึ้นกล่อง "ดาวน์โหลดหลายไฟล์" และ Safari ยอมให้แค่ไฟล์แรก)
+ * จึงต้องเว้นจังหวะระหว่างไฟล์ และปล่อย object URL ทิ้งทุกครั้งเพื่อไม่ให้หน่วยความจำบวม
+ * (dataURL ของภาพ A4 ที่ scale 2 ใหญ่ราว 3-5 MB ต่อหน้า)
+ */
+async function saveCanvasesAsPages(canvases, baseName){
+  const total = canvases.length;
+  for (let i = 0; i < total; i++){
+    // ไฟล์เดียวไม่ต้องเติมเลขหน้า จะได้ชื่อเหมือนเดิมทุกประการ
+    const fname = (total === 1) ? baseName + '.jpg'
+                                : baseName + '_หน้า' + (i + 1) + '-จาก-' + total + '.jpg';
+    // ใช้ toBlob เป็นหลักเพราะประหยัดหน่วยความจำกว่า dataURL มาก
+    // แต่เบราว์เซอร์เก่าบางตัวไม่มี จึงถอยไปใช้ dataURL แทนเพื่อให้ยังบันทึกได้
+    const a = document.createElement('a');
+    let url = '', isObjectUrl = false;
+    if (canvases[i].toBlob){
+      const blob = await new Promise(res => canvases[i].toBlob(res, 'image/jpeg', 0.95));
+      if (!blob) throw new Error('แปลงภาพหน้าที่ ' + (i + 1) + ' ไม่สำเร็จ');
+      url = URL.createObjectURL(blob); isObjectUrl = true;
+    } else {
+      url = canvases[i].toDataURL('image/jpeg', 0.95);
+    }
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click(); a.remove();
+    // ปล่อย URL หลังเบราว์เซอร์เริ่มดาวน์โหลดแล้ว ถ้าปล่อยทันทีบางเบราว์เซอร์จะได้ไฟล์ว่าง
+    if (isObjectUrl) setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+    if (i < total - 1){
+      toast('กำลังบันทึกหน้า ' + (i + 2) + ' จาก ' + total + '...', 'warn');
+      await new Promise(r => setTimeout(r, 700));   // เว้นจังหวะ กันเบราว์เซอร์บล็อกไฟล์ถัดไป
+    }
+  }
+}
+
 async function exportDoc(type){
   if (typeof html2canvas === 'undefined'){
     toast('โหลดไลบรารีสร้างรูปภาพไม่สำเร็จ กรุณาใช้ปุ่ม "พิมพ์ / บันทึก PDF" แทน', 'error'); return;
@@ -2624,18 +2665,11 @@ async function exportDoc(type){
     const name = exportFileName(DOC_TITLE[S.docType] || DOC_TITLE.full);
 
     if (type === 'jpeg'){
-      // JPEG ได้ไฟล์เดียว จึงต่อทุกหน้าเรียงลงมาในภาพเดียว พร้อมเว้นช่องขาวคั่นให้เห็นรอยต่อหน้า
-      const GAP = 24;
-      const w = Math.max.apply(null, canvases.map(c => c.width));
-      const h = canvases.reduce((t,c) => t + c.height, 0) + GAP * (canvases.length - 1);
-      const big = document.createElement('canvas');
-      big.width = w; big.height = h;
-      const ctx = big.getContext('2d');
-      ctx.fillStyle = '#e5e7eb'; ctx.fillRect(0, 0, w, h);
-      let y = 0;
-      canvases.forEach(c => { ctx.drawImage(c, Math.round((w - c.width)/2), y); y += c.height + GAP; });
-      const a = document.createElement('a');
-      a.href = big.toDataURL('image/jpeg', 0.95); a.download = name + '.jpg'; a.click();
+      // JPEG แยกไฟล์ละหน้า ไม่ต่อเป็นภาพยาวแผ่นเดียว
+      // เหตุผล: ภาพยาว ๆ เอาไปสั่งพิมพ์หรือแนบเอกสารต่อไม่ได้ ต้องมาตัดเองทีหลัง
+      // และเมื่อเปิดบนมือถือจะถูกย่อจนตัวหนังสืออ่านไม่ออก
+      // แต่ละไฟล์จึงเป็นหน้ากระดาษ A4 หนึ่งหน้าเต็ม ๆ พร้อมใช้งานทันที
+      await saveCanvasesAsPages(canvases, name);
     } else {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p','mm','a4');
@@ -2649,7 +2683,9 @@ async function exportDoc(type){
       });
       pdf.save(name + '.pdf');
     }
-    toast('บันทึกไฟล์เรียบร้อยแล้ว' + (canvases.length > 1 ? ' (' + canvases.length + ' หน้า)' : ''));
+    toast(canvases.length > 1
+      ? 'บันทึกเรียบร้อยแล้ว ' + canvases.length + ' ไฟล์ (หน้าละไฟล์)'
+      : 'บันทึกไฟล์เรียบร้อยแล้ว');
   }catch(e){
     logError('exportDoc', e);
     toast('สร้างไฟล์ไม่สำเร็จ กรุณาใช้ปุ่ม "พิมพ์ / บันทึก PDF" แทน', 'error');
