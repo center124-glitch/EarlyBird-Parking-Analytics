@@ -162,7 +162,15 @@
   #docSheet .total-box{ margin-top:10px; border:2px solid #4338ca; border-radius:8px;
     padding:10px 14px; background:#eef2ff; }
   /* ห้ามให้ตารางหรือช่องลงนามถูกตัดคร่อมหน้ากระดาษ */
-  #docSheet table, #docSheet .total-box, .sigline{ page-break-inside:avoid; break-inside:avoid; }
+  #docSheet table, #docSheet .total-box, #docSheet .doc-note, .sigline{ page-break-inside:avoid; break-inside:avoid; }
+  /* ช่องพิมพ์หมายเหตุบนแถบเครื่องมือของหน้าต่างใบ (ไม่ถูกพิมพ์/ไม่ถูกจับภาพ — อยู่นอก #docSheet)
+     ตั้งฟอนต์ 16px กัน iOS ซูมตอน focus */
+  .doc-notebox{ background:rgba(255,255,255,.95); border-radius:12px; padding:10px 12px; margin-bottom:10px; }
+  .doc-notebox textarea{ width:100%; font-size:16px; line-height:1.6; border:1px solid #d1d5db; border-radius:8px;
+    padding:8px 10px; resize:vertical; min-height:64px; background:#fff; color:#111827; }
+  html.dark .doc-notebox{ background:#1e293b; border:1px solid #334155; }
+  html.dark .doc-notebox textarea{ background:#0f172a; color:#e2e8f0; border-color:#475569; }
+  html.dark .doc-notebox label{ color:#e2e8f0; }
   .sigline{ border-top:1px dotted #6b7280; margin-top:56px; padding-top:6px; text-align:center; font-size:13px; }
   /* ================= การ์ดสรุปสำหรับส่ง LINE =================
      ขนาด 1080x1350 (อัตราส่วน 4:5) เป็นขนาดที่ LINE แสดงผลได้เต็มโดยไม่ถูกครอบตัด
@@ -452,16 +460,6 @@
       </div>
     </section>
 
-    <!-- กราฟเส้นยอดเงินนำส่ง: แยกการ์ดของตัวเองเพราะเป็นมิติ "เงิน" ไม่ใช่ "จำนวนรถ"
-         การเอาไปซ้อนบนกราฟแท่งเดิมจะทำให้อ่านผิด เนื่องจากคนละหน่วยและคนละสเกล -->
-    <section id="moneyChartBox" class="card p-3 sm:p-4">
-      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <h2 class="font-bold text-gray-700 text-sm sm:text-base"><i class="fa-solid fa-chart-line text-emerald-500 mr-1"></i> <span id="moneyChartTitle">แนวโน้มยอดเงินนำส่ง</span></h2>
-        <p id="moneyChartHint" class="text-[11px] text-gray-400"></p>
-      </div>
-      <div class="h-56 sm:h-64"><canvas id="chartMoney"></canvas></div>
-    </section>
-
     <section class="card p-3 sm:p-4">
       <h2 class="font-bold text-gray-700 text-sm sm:text-base mb-2"><i class="fa-solid fa-file-export text-indigo-500 mr-1"></i> สร้างรายงาน</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5">
@@ -505,31 +503,41 @@
 <button id="btnEntry" class="fab no-print"><i class="fa-solid fa-pen-to-square mr-2"></i>บันทึกข้อมูล</button>
 
 <footer class="text-center text-xs text-gray-400 py-6">
-  EarlyBird Parking Analytics v31 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
+  EarlyBird Parking Analytics v28 • แผนกลานจอดรถและจราจร ศูนย์การค้าซีคอนบางแค
 </footer>
 
 <div id="docModal" class="hidden fixed inset-0 bg-black/60 z-50 overflow-auto p-4">
-  <!-- กว้างเท่าหน้ากระดาษ (794px) พอดี แถบเครื่องมือจึงเรียงตรงกับขอบเอกสาร ไม่ล้นออกมา -->
-  <div class="max-w-[794px] mx-auto">
-    <!-- แถบเครื่องมือ 2 แถว: แถวบน = เลือกประเภทรายงาน (เรียงแถวเดียวเสมอ ไม่ตัดบรรทัด)
-         แถวล่าง = ปุ่มสั่งงาน  แยกกันเพื่อไม่ให้ปุ่มประเภทถูกดันตกบรรทัดจนซ้อนกับหัวแอป -->
-    <div class="no-print mb-2">
-      <div class="doctype-box rounded-xl p-1 grid grid-cols-3 gap-1 mb-2">
-        <button id="docTypeFull"  class="doctype doctype-on py-1.5 rounded-lg text-[13px] sm:text-sm font-semibold whitespace-nowrap text-center">แบบเต็ม</button>
-        <button id="docTypeBrief" class="doctype py-1.5 rounded-lg text-[13px] sm:text-sm font-semibold whitespace-nowrap text-center">แบบย่อ</button>
-        <button id="docTypeFin"   class="doctype py-1.5 rounded-lg text-[13px] sm:text-sm font-semibold whitespace-nowrap text-center">เฉพาะรายรับ</button>
+  <div class="max-w-[834px] mx-auto">
+    <div class="no-print flex flex-wrap gap-2 justify-between items-center mb-2">
+      <div class="doctype-box rounded-xl p-1 flex gap-1">
+        <button id="docTypeFull" class="doctype doctype-on px-3 py-1.5 rounded-lg text-sm font-semibold">แบบเต็ม</button>
+        <button id="docTypeFin" class="doctype px-3 py-1.5 rounded-lg text-sm font-semibold">เฉพาะรายรับ</button>
       </div>
-      <div class="flex flex-wrap gap-2">
-        <button id="btnPrint" class="flex-1 bg-white text-gray-700 font-semibold px-3 py-2 rounded-xl text-sm whitespace-nowrap"><i class="fa-solid fa-print mr-1"></i> พิมพ์ / บันทึก PDF</button>
-        <button id="btnPdf" class="flex-1 bg-rose-600 text-white font-semibold px-3 py-2 rounded-xl text-sm whitespace-nowrap"><i class="fa-solid fa-file-pdf mr-1"></i> ดาวน์โหลด PDF</button>
-        <button id="btnJpeg" class="flex-1 bg-amber-500 text-white font-semibold px-3 py-2 rounded-xl text-sm whitespace-nowrap"><i class="fa-solid fa-image mr-1"></i> บันทึก JPEG (แยกหน้า)</button>
-        <button id="btnCloseDoc" class="bg-gray-800 text-white font-semibold px-4 py-2 rounded-xl text-sm"><i class="fa-solid fa-xmark mr-1"></i> ปิด</button>
+      <div class="flex flex-wrap gap-2 justify-end">
+      <button id="btnPrint" class="bg-white text-gray-700 font-semibold px-4 py-2 rounded-xl"><i class="fa-solid fa-print mr-1"></i> พิมพ์ / บันทึก PDF</button>
+      <button id="btnPdf" class="bg-rose-600 text-white font-semibold px-4 py-2 rounded-xl"><i class="fa-solid fa-file-pdf mr-1"></i> ดาวน์โหลด PDF</button>
+      <button id="btnJpeg" class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-xl"><i class="fa-solid fa-image mr-1"></i> บันทึก JPEG</button>
+      <button id="btnCloseDoc" class="bg-gray-800 text-white font-semibold px-4 py-2 rounded-xl"><i class="fa-solid fa-xmark mr-1"></i> ปิด</button>
       </div>
     </div>
     <!-- ป้ายบอกชื่อเอกสาร = ชื่อไฟล์ที่จะได้เมื่อกดบันทึก ช่วยกันบันทึกผิดประเภท -->
     <p class="no-print text-white/85 text-[12px] mb-2"><i class="fa-regular fa-file-lines mr-1"></i>
       กำลังแสดง: <span id="docTitleTag" class="font-semibold text-white">-</span>
       <span class="text-white/60">• ไฟล์ที่บันทึกจะใช้ชื่อนี้</span></p>
+    <!-- หมายเหตุประจำใบ: พิมพ์แล้วแสดงใต้กรอบ "ยอดเงินนำส่งทั้งสิ้น" ทั้งบนจอ/พิมพ์/PDF/JPEG -->
+    <div class="no-print doc-notebox">
+      <div class="flex items-center justify-between gap-2 mb-1">
+        <label for="docNoteInput" class="text-[12.5px] font-semibold text-gray-700">
+          <i class="fa-regular fa-pen-to-square mr-1 text-indigo-500"></i>หมายเหตุในใบ
+          <span class="font-normal text-gray-500">(เว้นว่าง = ใบนำส่งเงินจะเป็นช่องเส้นประให้เขียนเอง)</span></label>
+        <button id="btnDocNoteClear" type="button" class="text-[12px] px-3 rounded-lg bg-gray-100 text-gray-600 font-semibold">ล้างหมายเหตุ</button>
+      </div>
+      <textarea id="docNoteInput" rows="2" maxlength="400" placeholder="เช่น ยอดเงินสดแก้ไขตามใบตรวจนับ / คูปองเลขที่ ... ชำรุด ไม่นับรวม"></textarea>
+      <div class="flex justify-between gap-2 text-[11px] text-gray-500 mt-1">
+        <span>หมายเหตุอยู่ในใบของช่วงข้อมูลนี้เท่านั้น และหายเมื่อรีเฟรชหน้า</span>
+        <span id="docNoteCount">0 / 400</span>
+      </div>
+    </div>
     <div class="scroll-x"><div id="docSheet"></div></div>
   </div>
 </div>
@@ -638,8 +646,7 @@
         <button id="btnEntryReload" class="px-3 bg-gray-100 text-gray-600 font-semibold rounded-xl text-sm" title="ดึงค่าเดิมของวันนี้กลับมา">คืนค่าเดิม</button>
         <button id="btnEntryClear" class="px-3 bg-gray-100 text-gray-600 font-semibold rounded-xl text-sm">ล้าง</button>
       </div>
-      <p class="text-[10.5px] text-gray-400 text-center">แก้ไขของเดิม: ระบบจะเขียนทับเฉพาะช่องที่คุณแก้ ช่องอื่นในแถวเดิมคงไว้ตามเดิม<br>
-        ทุกการแก้ไขถูกบันทึกลงแท็บ &quot;ประวัติการแก้ไข&quot; ในชีตโดยอัตโนมัติ (ค่าเดิม → ค่าใหม่)</p>
+      <p class="text-[10.5px] text-gray-400 text-center">แก้ไขของเดิม: ระบบจะเขียนทับเฉพาะช่องที่คุณแก้ ช่องอื่นในแถวเดิมคงไว้ตามเดิม</p>
     </div>
   </div>
 </div>
@@ -659,7 +666,7 @@
 
 <script>
 /* ==========================================================================
-   EarlyBird Parking Analytics v31.0
+   EarlyBird Parking Analytics v28.0
    ระบบวิเคราะห์ยอดรถเข้าจอดก่อนเวลาศูนย์การค้าเปิดทำการ
    v10: การ์ดสรุป LINE เต็มขอบไม่มีแถบขาวข้าง + ดึงชื่อผู้บันทึกจากชีต + เปลี่ยนชื่อหัวใบรายงานแบบเต็ม
    v11: - ย่อกรอบตัวกรองให้เป็นแถบเดียว ไม่ให้ดูใหญ่กว่าการ์ด KPI
@@ -730,29 +737,6 @@
                ย้ายการคุมสีทั้งพื้นและตัวอักษรมาไว้ใน CSS คลาสเดียว แล้วเขียนทับในโหมดมืด
         [ลบ]   ใบนำส่งเงิน: ตัดแถบตัวเลขสรุป 3 ช่องด้านบน, บรรทัดยอดรถเข้ารวม,
                หมายเหตุจากชีต และบล็อกผลตรวจทานอัตโนมัติออก (ใบฉบับเต็มยังมีครบ)
-   v31: [แก้]  บันทึก JPEG แยกเป็นไฟล์ละหน้า (เดิมต่อเป็นภาพยาวแผ่นเดียว)
-               ชื่อไฟล์ต่อท้ายด้วย _หน้า1-จาก-3 เรียงลำดับถูกต้องเมื่อ sort ในโฟลเดอร์
-               เว้นจังหวะระหว่างไฟล์ 700ms กันเบราว์เซอร์บล็อกการดาวน์โหลดหลายไฟล์
-               ใช้ toBlob (ประหยัดหน่วยความจำ) พร้อม fallback เป็น dataURL
-   v30: [ลบ]   "หมายเหตุ" พร้อมรายละเอียด ออกจากใบรายงานทั้งแบบเต็มและแบบย่อ
-        [ลบ]   คำว่า "ฉบับย่อ" ใต้หัวเรื่อง — แบบเต็มกับแบบย่อใช้คำบรรยายเดียวกัน
-        [เก็บกวาด] ลบฟังก์ชันที่ไม่ถูกเรียกแล้วออก (docCheckNote, recorderNamesAll)
-   v29: [แก้บั๊ก] กราฟยอดเงินนำส่งไม่อัปเดตเมื่อเปลี่ยนโหมด — มี return ในทางลัดของ
-                  กราฟโดนัทขวางไว้ กราฟเงินจึงถูกวาดครั้งเดียวตอนโหลดหน้าแล้วค้างอยู่อย่างนั้น
-        [แก้]    ชื่อรายงานแบบเต็มและแบบย่อใช้ชื่อเดียวกัน และบังคับให้อยู่บรรทัดเดียว
-        [แก้]    ผู้บันทึกข้อมูล/ผู้นำส่งเงิน แสดงเฉพาะคนของวันล่าสุดที่มีข้อมูล
-                  (เดิมรวมทุกคนในช่วงมาต่อกันจนอ่านไม่รู้เรื่องในรายงานรายเดือน)
-        [UI]     กรอบเลือกประเภทรายงานกว้างเท่าหน้ากระดาษพอดี ปุ่มจัดกึ่งกลางเท่ากัน
-   v28: [เพิ่ม] รายงาน "แบบย่อ" = เนื้อหาหน้าแรกของแบบเต็ม + ช่องลงนามผู้จัดทำรายงาน
-                ไม่มีตารางแนบท้าย จึงได้เอกสารหน้าเดียวเสมอไม่ว่าช่วงจะยาวแค่ไหน
-        [เพิ่ม] กราฟเส้นแนวโน้มยอดเงินนำส่ง (รายเดือน/รายปี พร้อมเส้นเทียบปีก่อน)
-        [ลบ]   ข้อความ "ผลตรวจทานอัตโนมัติ" ออกจากเอกสารทุกแบบ (ยังตรวจและแสดงบนหน้าจอ)
-        [UI]   ปุ่มเลือกประเภทรายงาน 3 แบบเรียงแถวเดียว ไม่ตัดบรรทัด
-   v27: [เพิ่ม] ประวัติการแก้ไข (audit trail) — ทุกครั้งที่บันทึก/แก้ไข ระบบเขียนลงแท็บ
-                "ประวัติการแก้ไข" ในชีตเดียวกัน: เวลา วันที่ของข้อมูล การกระทำ แถวที่
-                ผู้บันทึก จำนวนช่องที่แก้ และรายละเอียด "ค่าเดิม -> ค่าใหม่" ทุกช่อง
-                ค่าเดิมอ่านจากชีตฝั่งเซิร์ฟเวอร์ก่อนเขียนทับ ไม่เชื่อค่าที่หน้าเว็บส่งมา
-                (ต้องใช้ Code_v27.gs)
    v26: [แก้]  การพิมพ์: เดิมใช้ visibility:hidden ซึ่งไม่เอาพื้นที่ของแดชบอร์ดออก
                จึงได้กระดาษเปล่าต่อท้าย และในโหมดมืดพื้นหลังเข้มถูกพิมพ์เป็นแถบดำทึบ
                -> เปลี่ยนเป็น display:none + บังคับพื้นขาวครอบทุกธีม + ธง doc-open
@@ -761,6 +745,13 @@
    v25: [แก้]  ข้อความและการ์ด LINE เลิกใช้อีโมจิ 📅 ซึ่งบนมือถือวาดเป็นปฏิทินที่มีตัวเลข
                วันที่ติดมาในตัว ทำให้เข้าใจผิดว่ารายงานรายเดือน/ปี เป็นยอดของวันนั้น
                เปลี่ยนเป็น 📌/📊 (ไม่มีตัวเลข) และเติมคำบอกประเภทช่วงไว้หน้าตัวเลขเสมอ
+   v27: [เพิ่ม] "หมายเหตุในใบ": ช่องพิมพ์บนหน้าต่างใบ (ใช้ได้ทั้งแบบเต็ม/เฉพาะรายรับ)
+               ข้อความแสดงในกล่องใต้กรอบ "ยอดเงินนำส่งทั้งสิ้น" และติดไปกับพิมพ์/PDF/JPEG
+               เว้นว่าง = ใบเหมือนเดิมทุกประการ · เก็บตามเลขที่เอกสาร (ช่วงข้อมูล) ในหน่วยความจำ
+        [แก้] ป้ายหมายเหตุจากชีตในใบแบบเต็ม -> "หมายเหตุจากบันทึกข้อมูล:" ไม่ให้ซ้ำกับหมายเหตุที่พิมพ์เอง
+               (Code.gs ไม่เปลี่ยน — ใช้ Code_v26.gs เดิมได้ ไม่ต้อง deploy ใหม่)
+    v28: [เพิ่ม] ใบนำส่งเงิน (เฉพาะรายรับ) มีกล่องหมายเหตุใต้กรอบยอดรวมเสมอ
+               ถ้าไม่ได้พิมพ์ข้อความ จะเป็นช่องเส้นประ 3 บรรทัดให้เขียนด้วยมือหลังพิมพ์ (ใบแบบเต็มยังแสดงเมื่อมีข้อความเท่านั้น)
    ========================================================================== */
 
 /* ---------------------- 1) CONFIG ---------------------- */
@@ -826,19 +817,12 @@ const CONFIG = {
    เหตุผล: เดิมไฟล์ที่บันทึกออกมาชื่อ "ใบนำส่งเงิน_..." เหมือนกันทั้งสองแบบ
    เวลาเก็บแฟ้มหรือส่งให้ผู้ตรวจทานจึงแยกไม่ออกว่าไฟล์ไหนคือใบแบบเต็ม ไฟล์ไหนคือใบเฉพาะรายรับ */
 const DOC_TITLE = {
-  /* แบบเต็มและแบบย่อใช้ "ชื่อเดียวกัน" โดยเจตนา เพราะเป็นรายงานฉบับเดียวกัน
-     ต่างกันแค่มีหรือไม่มีตารางแนบท้าย ถ้าตั้งชื่อต่างกันผู้รับจะเข้าใจว่าเป็นคนละรายงาน
-     (แยกกันได้จากคำบรรยายใต้หัวเรื่อง และจากจำนวนหน้า) */
-  full:  'รายงานยอดรถและค่าจอดรถก่อนศูนย์เปิดทำการ',
-  brief: 'รายงานยอดรถและค่าจอดรถก่อนศูนย์เปิดทำการ',
+  full: 'รายงานยอดรถและค่าจอดรถก่อนศูนย์เปิดทำการ',
   fin : 'ใบนำส่งเงินค่าจอดรถก่อนเวลาทำการ'
 };
 const DOC_SUBTITLE = {
-  full : 'สรุปปริมาณรถและรายรับที่นำส่งเงิน',
-  // แบบย่อใช้คำบรรยายเดียวกับแบบเต็ม เพราะเป็นรายงานฉบับเดียวกัน
-  // ผู้รับแยกออกเองได้จากจำนวนหน้า ไม่ต้องติดป้ายกำกับให้ดูเหมือนเอกสารคนละชุด
-  brief: 'สรุปปริมาณรถและรายรับที่นำส่งเงิน',
-  fin  : 'สรุปคูปองและรายรับที่นำส่งเงิน'
+  full: 'สรุปปริมาณรถและรายรับที่นำส่งเงิน',
+  fin : 'สรุปคูปองและรายรับที่นำส่งเงิน'
 };
 const CARD_TITLE = 'สรุปยอดรถยนต์และค่าจอดก่อนศูนย์เปิด';
 
@@ -913,9 +897,9 @@ const TH_DAYS = ['อาทิตย์','จันทร์','อังคา�
    cache   = ผลของ filteredRows()/aggregate() ของช่วงที่กำลังดูอยู่ */
 const S = { rows:[], byKey:new Map(), version:0, cache:null,
             mode:'daily', anchor:new Date(), isDemo:false, mapText:'', raw:null, source:'',
-            docType:'full', loading:false, warnings:[], locked:true, idleTimer:null, hiddenAt:0, truncated:false,
+            docType:'full', docNotes:new Map(), loading:false, warnings:[], locked:true, idleTimer:null, hiddenAt:0, truncated:false,
             dark: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
-            charts:{trend:null,pie:null,money:null} };
+            charts:{trend:null,pie:null} };
 
 /* ---------------------- 4) Utilities ---------------------- */
 const $  = (id) => document.getElementById(id);
@@ -1848,7 +1832,7 @@ function renderCharts(rows, a){
   catch(err){
     // กราฟพังต้องไม่ลากตัวเลข/ตาราง/ปุ่มออกรายงานล่มไปด้วย จึงดักไว้ตรงนี้ชั้นหนึ่ง
     logError('renderCharts', err);
-    S.charts.trend = null; S.charts.pie = null; S.charts.money = null;   // ทิ้งอินสแตนซ์ที่อาจอยู่ในสภาพครึ่ง ๆ กลาง ๆ
+    S.charts.trend = null; S.charts.pie = null;   // ทิ้งอินสแตนซ์ที่อาจอยู่ในสภาพครึ่ง ๆ กลาง ๆ
   }
 }
 
@@ -1915,9 +1899,6 @@ function drawCharts(rows, a){
   if (S.charts.pie && !S.themeChanged){
     S.charts.pie.data.datasets[0].data = CATS.map(c => a[c.key]);
     S.charts.pie.update('none');
-    // ต้องวาดกราฟเงินก่อน return เสมอ — เดิม return ตรงนี้ทำให้กราฟเงินถูกวาดครั้งเดียว
-    // ตอนโหลดหน้า (โหมดรายวัน) แล้วไม่เคยอัปเดตอีกเลยเมื่อผู้ใช้เปลี่ยนเป็นรายเดือน/รายปี
-    drawMoneyChart(rows, a, tick, grid);
     S.themeChanged = false;
     return;
   }
@@ -1929,83 +1910,7 @@ function drawCharts(rows, a){
       plugins:{ legend:{ position:'bottom', labels:{ color:tick, boxWidth:12, font:{ family:'Sarabun', size:11 } } },
         tooltip:{ callbacks:{ label:(c)=> ' ' + c.label + ': ' + nf(c.parsed) + ' คัน (' + pct(c.parsed, a.total) + ')' } } } }
   });
-  drawMoneyChart(rows, a, tick, grid);
-  S.themeChanged = false;   // สร้างใหม่ครบทุกกราฟแล้ว สีจึงตรงกับธีมปัจจุบัน
-}
-
-/**
- * กราฟเส้นยอดเงินนำส่ง
- *  - โหมดรายปี   : จุดละเดือน (12 จุด) เทียบกับปีก่อนหน้าถ้ามีข้อมูล
- *  - โหมดรายเดือน : จุดละวันในเดือนนั้น
- *  - โหมดรายวัน/รายสัปดาห์ : จุดละวัน ย้อนหลัง 14 วันจากวันที่เลือก
- *    (ช่วงสั้นเกินกว่าจะเห็นแนวโน้ม จึงขยายกรอบให้อัตโนมัติ)
- * ใช้ "ยอดสุทธิ" เมื่อมีการคืนคูปอง เพราะนั่นคือเงินที่เหลืออยู่จริง
- */
-function drawMoneyChart(rows, a, tick, grid){
-  if (typeof Chart === 'undefined') return;
-  const useNet = a.hasRefund;
-  const label  = useNet ? 'ยอดสุทธิ (บาท)' : 'ยอดเงินนำส่ง (บาท)';
-  const val    = (r) => (useNet ? r.net : r.money);
-
-  let labels = [], values = [], prevValues = null, hint = '';
-
-  if (S.mode === 'yearly'){
-    labels = TH_MONTHS_SHORT.slice(); values = new Array(12).fill(0);
-    rows.forEach(r => { if (r.hasData) values[r.date.getMonth()] += val(r); });
-    const py = S.anchor.getFullYear() - 1;
-    const pr = S.rows.filter(r => r.date.getFullYear() === py && r.hasData);
-    if (pr.length){
-      prevValues = new Array(12).fill(0);
-      pr.forEach(r => prevValues[r.date.getMonth()] += val(r));
-    }
-    hint = 'รายเดือน ปี พ.ศ. ' + be(S.anchor.getFullYear());
-  } else if (S.mode === 'monthly'){
-    rows.forEach(r => { if (r.hasData){ labels.push(String(r.date.getDate())); values.push(val(r)); } });
-    hint = 'รายวัน • ' + TH_MONTHS[S.anchor.getMonth()] + ' ' + be(S.anchor.getFullYear());
-  } else {
-    // ช่วงสั้น: ขยายกรอบเป็น 14 วันย้อนหลัง เพื่อให้เส้นมีรูปทรงพอจะอ่านแนวโน้มได้
-    const end = currentRange().to;
-    for (let i = 13; i >= 0; i--){
-      const d = addDays(end, -i), hit = rowByDate(d);
-      labels.push(pad2(d.getDate()) + '/' + pad2(d.getMonth()+1));
-      values.push(hit && hit.hasData ? val(hit) : 0);
-    }
-    hint = 'ย้อนหลัง 14 วันถึง ' + thShort(end);
-  }
-
-  $('moneyChartTitle').textContent = useNet ? 'แนวโน้มยอดสุทธิหลังหักคืน' : 'แนวโน้มยอดเงินนำส่ง';
-  $('moneyChartHint').textContent  = hint;
-
-  const line = (name, data, color, dashed) => ({
-    label:name, data, borderColor:color, backgroundColor:color + '22',
-    borderWidth:3, borderDash: dashed ? [6,4] : [], tension:.35,
-    pointRadius: data.length > 20 ? 0 : 3, pointHoverRadius:5, fill:!dashed
-  });
-
-  const dsets = [line(label, values, S.dark ? '#34D399' : '#059669', false)];
-  if (prevValues) dsets.push(line('ปีก่อน (พ.ศ. ' + be(S.anchor.getFullYear()-1) + ')',
-                                  prevValues, '#94A3B8', true));
-
-  if (S.charts.money && !S.themeChanged && S.charts.money.data.datasets.length === dsets.length){
-    S.charts.money.data.labels = labels;
-    dsets.forEach((d,i) => { S.charts.money.data.datasets[i].data = d.data; S.charts.money.data.datasets[i].label = d.label; });
-    S.charts.money.update('none');
-    return;
-  }
-  if (S.charts.money) S.charts.money.destroy();
-  S.charts.money = new Chart($('chartMoney'), {
-    type:'line',
-    data:{ labels, datasets:dsets },
-    options:{ responsive:true, maintainAspectRatio:false,
-      interaction:{ mode:'index', intersect:false },
-      plugins:{ legend:{ display: dsets.length > 1, labels:{ color:tick, boxWidth:12, font:{ family:'Sarabun', size:11 } } },
-        tooltip:{ callbacks:{ label:(c)=> ' ' + c.dataset.label + ': ' + nf(c.parsed.y) + ' บาท' } } },
-      scales:{
-        x:{ ticks:{ color:tick, font:{ family:'Sarabun', size:11 }, maxRotation:0, autoSkip:true, maxTicksLimit:12 }, grid:{ display:false } },
-        y:{ beginAtZero:true, ticks:{ color:tick, font:{ family:'Sarabun', size:11 },
-              callback:(v)=> nf(v) }, grid:{ color:grid } } }
-    }
-  });
+  S.themeChanged = false;   // สร้างใหม่ครบทั้งสองกราฟแล้ว สีจึงตรงกับธีมปัจจุบัน
 }
 
 /* ---------------------- 11) รายงานที่ 1 : สรุปสำหรับ LINE ----------------------
@@ -2248,19 +2153,16 @@ async function copyLine(){
  *  title: ชื่อหัวเอกสารต่างกันตามประเภท — แบบเต็มใช้ชื่อใหม่ตามที่กำหนด แบบเฉพาะรายรับคงชื่อเดิม */
 function docHeader(subtitle, title){
   return '<table style="border:none;margin-bottom:14px"><tr>' +
-    // บีบคอลัมน์ซ้าย/ขวาลงเหลือ 130px เพื่อเปิดพื้นที่ให้ชื่อเรื่องอยู่บรรทัดเดียว
-    // (วัดด้วยฟอนต์ Sarabun จริง: ชื่อยาวสุดที่ 18px = 364px จากพื้นที่ 446px)
-    '<td style="border:none;width:130px;vertical-align:middle">' +
-      '<img src="' + LOGO + '" alt="Seacon Bangkae" style="width:122px;height:auto;display:block">' +
+    '<td style="border:none;width:150px;vertical-align:middle">' +
+      '<img src="' + LOGO + '" alt="Seacon Bangkae" style="width:140px;height:auto;display:block">' +
     '</td>' +
     '<td style="border:none;text-align:center;vertical-align:middle">' +
       '<div style="font-size:12px;color:#4f46e5;letter-spacing:2px;font-weight:700">EARLYBIRD PARKING ANALYTICS</div>' +
-      // nowrap กันไว้อีกชั้น ถ้าวันหนึ่งเปลี่ยนชื่อเรื่องให้ยาวขึ้นจะได้เห็นว่าล้นทันที ไม่ตัดบรรทัดเงียบ ๆ
-      '<div style="font-size:18px;font-weight:800;line-height:1.4;margin-top:1px;white-space:nowrap">' + title + '</div>' +
+      '<div style="font-size:20px;font-weight:800;line-height:1.35;margin-top:1px">' + title + '</div>' +
       '<div style="font-size:13px;color:#4b5563">' + subtitle + '</div>' +
       '<div style="font-size:12.5px;color:#374151;margin-top:3px">' + CONFIG.DEPT + ' &nbsp;•&nbsp; ' + CONFIG.ORG + '</div>' +
     '</td>' +
-    '<td style="border:none;width:130px;text-align:right;vertical-align:middle">' +
+    '<td style="border:none;width:150px;text-align:right;vertical-align:middle">' +
       '<div style="font-size:10.5px;color:#6b7280;line-height:1.5">เลขที่เอกสาร<br><b style="font-size:12px;color:#111827">' + docNo() + '</b></div>' +
     '</td>' +
   '</tr></table>' +
@@ -2275,22 +2177,15 @@ function docNo(){
 }
 
 /** รวมชื่อผู้บันทึกที่ปรากฏในช่วงข้อมูลที่เลือก (ไม่ซ้ำ) — คืนค่าว่างถ้าชีตไม่มีคอลัมน์นี้ */
-/**
- * ชื่อผู้บันทึกข้อมูล / ผู้นำส่งเงิน ที่จะพิมพ์ลงเอกสาร
- *
- * เดิมรวมชื่อทุกคนที่ปรากฏในช่วงมาต่อกันด้วยคอมมา พอเป็นรายงานรายเดือนจะได้
- * รายชื่อยาวหลายคนคาบเกี่ยวกันจนอ่านไม่รู้เรื่อง และผิดความหมายของเอกสาร —
- * ช่องนี้คือ "ผู้รับผิดชอบเอกสารฉบับนี้" ไม่ใช่รายชื่อทุกคนที่เคยกรอกข้อมูล
- *
- * จึงใช้ชื่อของ "วันล่าสุดที่มีข้อมูลในช่วงที่รายงาน" ซึ่งคือผู้ที่ปิดยอดและนำส่งเอกสาร
- * โหมดรายวันจะได้ชื่อของวันนั้นตรง ๆ อยู่แล้ว
- */
 function recorderNames(rows){
-  for (let i = rows.length - 1; i >= 0; i--){
-    const r = rows[i];
-    if (r && r.hasData && r.recorder) return String(r.recorder).trim();
-  }
-  return '';
+  const names = [];
+  rows.forEach(r => {
+    if (!r.recorder) return;
+    r.recorder.split('/').map(x => x.trim()).filter(Boolean).forEach(n => {
+      if (!names.includes(n)) names.push(n);
+    });
+  });
+  return names.join(', ');
 }
 
 function metaTable(a, dateLine, rows){
@@ -2367,6 +2262,36 @@ function financeTable(a){
   '</tr></table></div>';
 }
 
+/** ความยาวสูงสุดของหมายเหตุในใบ — จำกัดเพื่อให้หน้า 1 ไม่ล้นกระดาษ A4 */
+const DOC_NOTE_MAX = 400;
+
+/** หมายเหตุที่ผู้ใช้พิมพ์เองสำหรับใบของช่วงข้อมูลนี้ (ผูกกับเลขที่เอกสาร จึงไม่ข้ามไปโผล่ในใบช่วงอื่น) */
+function docNoteText(){
+  return String(S.docNotes.get(docNo()) || '').slice(0, DOC_NOTE_MAX);
+}
+
+/**
+ * กล่องหมายเหตุใต้กรอบ "ยอดเงินนำส่งทั้งสิ้น"
+ * - ว่าง = ไม่แสดงอะไรเลย ใบที่ไม่ได้พิมพ์หมายเหตุจึงหน้าตาเหมือนเดิมทุกประการ
+ * - ข้อความจากผู้ใช้ผ่าน esc() ก่อนลง innerHTML และแปลงขึ้นบรรทัดใหม่เป็น <br>
+ * - ใช้สี hex/inline ล้วน และ border-left แทนเงา เพราะ html2canvas ไม่รองรับ CSS variable/inset shadow
+ */
+function docNoteBlock(alwaysBox){
+  const txt = docNoteText().trim();
+  if (!txt){
+    if (!alwaysBox) return '';
+    // ใบนำส่งเงิน: ไม่ได้พิมพ์หมายเหตุ -> เว้นช่องเส้นประ 3 บรรทัดไว้ให้เขียนด้วยมือหลังพิมพ์
+    const ln = '<div style="border-bottom:1px dotted #6b7280;height:26px"></div>';
+    return '<div class="doc-note" style="margin-top:10px;border:1px solid #9ca3af;border-left:4px solid #4338ca;' +
+      'border-radius:6px;background:#ffffff;padding:8px 12px;font-size:12.5px;line-height:1.7;color:#111827">' +
+      '<b>หมายเหตุ:</b>' + ln + ln + ln + '</div>';
+  }
+  return '<div class="doc-note" style="margin-top:10px;border:1px solid #9ca3af;border-left:4px solid #4338ca;' +
+    'border-radius:6px;background:#f9fafb;padding:8px 12px;font-size:12.5px;line-height:1.7;color:#111827;' +
+    'word-break:break-word">' +
+    '<b>หมายเหตุ:</b> ' + esc(txt).replace(/\r?\n/g, '<br>') + '</div>';
+}
+
 /**
  * แถบตัวเลขสำคัญ 3 ช่องบนหัวเอกสาร
  * เหตุผล: ผู้บริหาร/ผู้ตรวจรับมักดูแค่ 3 ตัวเลขนี้ การวางไว้บนสุดทำให้ไม่ต้องไล่อ่านทั้งตาราง
@@ -2385,6 +2310,27 @@ function docKpiStrip(a){
     cell(a.hasRefund ? 'ยอดสุทธิ (หักคืนแล้ว)' : 'ยอดเงินนำส่งทั้งสิ้น',
          nf(a.hasRefund ? a.net : a.money), 'บาท', '#065f46', '#ecfdf5', '#a7f3d0') +
   '</tr></table>';
+}
+
+/**
+ * บล็อก "ผลตรวจทานอัตโนมัติ" ท้ายเอกสาร
+ * ใช้ผลจาก buildChecks() ชุดเดียวกับที่แสดงบนหน้าจอ เอกสารกับหน้าจอจึงไม่มีทางขัดกันเอง
+ * ถ้าพบข้อทักท้วง จะพิมพ์ติดไปกับเอกสารด้วย เพื่อให้ผู้เซ็นรับรู้ก่อนลงนาม
+ */
+function docCheckNote(a){
+  const list  = buildChecks(a);
+  const warns = list.filter(c => c.st === 'warn');
+  if (warns.length){
+    return '<div style="margin-top:11px;border:1px solid #f59e0b;background:#fffbeb;border-radius:6px;' +
+      'padding:8px 12px;font-size:11.5px;color:#92400e;line-height:1.65">' +
+      '<b>ข้อสังเกตจากการตรวจทานอัตโนมัติ (' + warns.length + ' รายการ):</b><br>' +
+      warns.map(w => '• ' + w.label + ' — ' + w.detail).join('<br>') + '</div>';
+  }
+  const okCount = list.filter(c => c.st === 'ok').length;
+  if (!okCount) return '';
+  return '<div style="margin-top:11px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:6px;' +
+    'padding:7px 12px;font-size:11.5px;color:#065f46">' +
+    '<b>ผลตรวจทานอัตโนมัติ:</b> กระทบยอดผ่าน ' + okCount + ' รายการ ไม่พบข้อทักท้วง</div>';
 }
 
 /* ---------------------- 13.1) เอกสาร A4 แบบหลายหน้า ----------------------
@@ -2506,11 +2452,11 @@ function openDocModal(open){
 function buildDoc(){
   const view = currentView(), rows = view.rows, a = view.agg, r = currentRange();
   const dateLine = (S.mode === 'daily') ? thFull(r.from) : thShort(r.from) + ' ถึง ' + thShort(r.to);
-  const fin   = S.docType === 'fin';
-  const brief = S.docType === 'brief';   // เหมือนแบบเต็ม แต่ตัดตารางแนบท้ายออก
+  const notes = rows.map(x => x.note).filter(Boolean);
+  const fin = S.docType === 'fin';
 
   // ชื่อหัวเอกสารดึงจาก DOC_TITLE ที่เดียว — ชื่อไฟล์ตอนบันทึกจึงตรงกับหัวเอกสารเสมอ
-  const kind  = fin ? 'fin' : (brief ? 'brief' : 'full');
+  const kind  = fin ? 'fin' : 'full';
   const title = DOC_TITLE[kind];
 
   // ใบนำส่งเงินเป็นเอกสารการเงินล้วน จึงไม่ใส่แถบตัวเลขสรุปด้านบน
@@ -2520,7 +2466,7 @@ function buildDoc(){
               (fin ? '' : docKpiStrip(a));
 
   if (fin){
-    page1 += '<div class="sec">สรุปคูปองและรายรับที่นำส่งเงิน</div>' + financeTable(a);
+    page1 += '<div class="sec">สรุปคูปองและรายรับที่นำส่งเงิน</div>' + financeTable(a) + docNoteBlock(true);
   } else {
     const catRows = CATS.map(c =>
       '<tr><td>' + c.label + '</td><td style="text-align:right">' + nf(a[c.key]) + '</td><td style="text-align:right">' + pct(a[c.key], a.total) + '</td></tr>'
@@ -2531,20 +2477,21 @@ function buildDoc(){
         '<tbody>' + catRows + '</tbody>' +
         '<tfoot><tr style="background:#eef2ff;font-weight:800"><td>รวมทั้งสิ้น</td><td style="text-align:right">' + nf(a.total) + '</td><td style="text-align:right">100.0%</td></tr></tfoot>' +
       '</table>' +
-      '<div class="sec">2. สรุปคูปองและรายรับที่นำส่งเงิน</div>' + financeTable(a);
+      '<div class="sec">2. สรุปคูปองและรายรับที่นำส่งเงิน</div>' + financeTable(a) + docNoteBlock();
   }
 
-  /* เอกสารที่ส่งออกทุกแบบมีเฉพาะตัวเลขที่ต้องกระทบยอดและเซ็นรับรองเท่านั้น
-     ตามที่หน่วยงานกำหนด จึงไม่พิมพ์สองอย่างนี้ติดไปด้วย:
-       - หมายเหตุจากชีต (ยังดูได้ในตาราง "ข้อมูลรายวัน" บนหน้าจอ)
-       - ผลตรวจทานอัตโนมัติ (ยังตรวจและแสดงบนแผงตรวจทานก่อนสั่งพิมพ์)
-     ทั้งสองอย่างยังทำงานเหมือนเดิม แค่ไม่ปรากฏบนกระดาษ */
+  // หมายเหตุจากชีตและผลตรวจทานอัตโนมัติ แสดงเฉพาะใบรายงานฉบับเต็ม
+  // ใบนำส่งเงินต้องมีเฉพาะตัวเลขที่ผู้รับเงินต้องนับและเซ็นรับรอง ไม่มีข้อความอื่นมารบกวน
+  // (ยกเว้น "หมายเหตุในใบ" ที่ผู้ใช้พิมพ์เอง — ว่างเมื่อไม่ได้พิมพ์ จึงไม่กระทบใบเดิม)
+  if (!fin){
+    if (notes.length) page1 += '<div style="font-size:12.5px;color:#4b5563;margin-top:10px"><b>หมายเหตุจากบันทึกข้อมูล:</b> ' + notes.map(esc).join(' / ') + '</div>';
+    page1 += docCheckNote(a);
+  }
 
   const pages = [page1];
 
-  // ตารางแนบท้ายมีเฉพาะแบบเต็มที่ครอบคลุมมากกว่า 1 วัน
-  // แบบย่อตัดส่วนนี้ออกโดยเจตนา จึงได้เอกสารหน้าเดียวเสมอไม่ว่าช่วงจะยาวแค่ไหน
-  const det = (!fin && !brief && S.mode !== 'daily') ? detailRows(rows) : [];
+  // ตารางแนบท้ายเฉพาะใบแบบเต็มที่ครอบคลุมมากกว่า 1 วัน — ใบรายวันมีข้อมูลวันเดียวอยู่แล้ว
+  const det = (!fin && S.mode !== 'daily') ? detailRows(rows) : [];
   if (det.length > 1){
     const unit = (S.mode === 'yearly') ? 'รายเดือน' : 'รายวัน';
     const secTitle = '3. ตารางแนบท้าย : รายละเอียด' + unit + 'ในช่วงที่รายงาน';
@@ -2612,43 +2559,6 @@ async function captureDocPages(){
   return out;
 }
 
-/**
- * บันทึก canvas หลายใบเป็นไฟล์ JPEG แยกหน้า
- *
- * ข้อควรระวังของเบราว์เซอร์: การสั่งดาวน์โหลดรัว ๆ ในคลิกเดียวจะถูกบล็อก
- * (Chrome ขึ้นกล่อง "ดาวน์โหลดหลายไฟล์" และ Safari ยอมให้แค่ไฟล์แรก)
- * จึงต้องเว้นจังหวะระหว่างไฟล์ และปล่อย object URL ทิ้งทุกครั้งเพื่อไม่ให้หน่วยความจำบวม
- * (dataURL ของภาพ A4 ที่ scale 2 ใหญ่ราว 3-5 MB ต่อหน้า)
- */
-async function saveCanvasesAsPages(canvases, baseName){
-  const total = canvases.length;
-  for (let i = 0; i < total; i++){
-    // ไฟล์เดียวไม่ต้องเติมเลขหน้า จะได้ชื่อเหมือนเดิมทุกประการ
-    const fname = (total === 1) ? baseName + '.jpg'
-                                : baseName + '_หน้า' + (i + 1) + '-จาก-' + total + '.jpg';
-    // ใช้ toBlob เป็นหลักเพราะประหยัดหน่วยความจำกว่า dataURL มาก
-    // แต่เบราว์เซอร์เก่าบางตัวไม่มี จึงถอยไปใช้ dataURL แทนเพื่อให้ยังบันทึกได้
-    const a = document.createElement('a');
-    let url = '', isObjectUrl = false;
-    if (canvases[i].toBlob){
-      const blob = await new Promise(res => canvases[i].toBlob(res, 'image/jpeg', 0.95));
-      if (!blob) throw new Error('แปลงภาพหน้าที่ ' + (i + 1) + ' ไม่สำเร็จ');
-      url = URL.createObjectURL(blob); isObjectUrl = true;
-    } else {
-      url = canvases[i].toDataURL('image/jpeg', 0.95);
-    }
-    a.href = url; a.download = fname;
-    document.body.appendChild(a); a.click(); a.remove();
-    // ปล่อย URL หลังเบราว์เซอร์เริ่มดาวน์โหลดแล้ว ถ้าปล่อยทันทีบางเบราว์เซอร์จะได้ไฟล์ว่าง
-    if (isObjectUrl) setTimeout(() => URL.revokeObjectURL(url), 4000);
-
-    if (i < total - 1){
-      toast('กำลังบันทึกหน้า ' + (i + 2) + ' จาก ' + total + '...', 'warn');
-      await new Promise(r => setTimeout(r, 700));   // เว้นจังหวะ กันเบราว์เซอร์บล็อกไฟล์ถัดไป
-    }
-  }
-}
-
 async function exportDoc(type){
   if (typeof html2canvas === 'undefined'){
     toast('โหลดไลบรารีสร้างรูปภาพไม่สำเร็จ กรุณาใช้ปุ่ม "พิมพ์ / บันทึก PDF" แทน', 'error'); return;
@@ -2662,14 +2572,21 @@ async function exportDoc(type){
     toast('กำลังสร้างไฟล์ กรุณารอสักครู่...', 'warn');
     const canvases = await captureDocPages();
     // ชื่อไฟล์ = ชื่อประเภทเอกสารที่กำลังเปิดอยู่ ไม่ใช่ชื่อรวม ๆ แบบเดิม
-    const name = exportFileName(DOC_TITLE[S.docType] || DOC_TITLE.full);
+    const name = exportFileName(DOC_TITLE[S.docType === 'fin' ? 'fin' : 'full']);
 
     if (type === 'jpeg'){
-      // JPEG แยกไฟล์ละหน้า ไม่ต่อเป็นภาพยาวแผ่นเดียว
-      // เหตุผล: ภาพยาว ๆ เอาไปสั่งพิมพ์หรือแนบเอกสารต่อไม่ได้ ต้องมาตัดเองทีหลัง
-      // และเมื่อเปิดบนมือถือจะถูกย่อจนตัวหนังสืออ่านไม่ออก
-      // แต่ละไฟล์จึงเป็นหน้ากระดาษ A4 หนึ่งหน้าเต็ม ๆ พร้อมใช้งานทันที
-      await saveCanvasesAsPages(canvases, name);
+      // JPEG ได้ไฟล์เดียว จึงต่อทุกหน้าเรียงลงมาในภาพเดียว พร้อมเว้นช่องขาวคั่นให้เห็นรอยต่อหน้า
+      const GAP = 24;
+      const w = Math.max.apply(null, canvases.map(c => c.width));
+      const h = canvases.reduce((t,c) => t + c.height, 0) + GAP * (canvases.length - 1);
+      const big = document.createElement('canvas');
+      big.width = w; big.height = h;
+      const ctx = big.getContext('2d');
+      ctx.fillStyle = '#e5e7eb'; ctx.fillRect(0, 0, w, h);
+      let y = 0;
+      canvases.forEach(c => { ctx.drawImage(c, Math.round((w - c.width)/2), y); y += c.height + GAP; });
+      const a = document.createElement('a');
+      a.href = big.toDataURL('image/jpeg', 0.95); a.download = name + '.jpg'; a.click();
     } else {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p','mm','a4');
@@ -2683,9 +2600,7 @@ async function exportDoc(type){
       });
       pdf.save(name + '.pdf');
     }
-    toast(canvases.length > 1
-      ? 'บันทึกเรียบร้อยแล้ว ' + canvases.length + ' ไฟล์ (หน้าละไฟล์)'
-      : 'บันทึกไฟล์เรียบร้อยแล้ว');
+    toast('บันทึกไฟล์เรียบร้อยแล้ว' + (canvases.length > 1 ? ' (' + canvases.length + ' หน้า)' : ''));
   }catch(e){
     logError('exportDoc', e);
     toast('สร้างไฟล์ไม่สำเร็จ กรุณาใช้ปุ่ม "พิมพ์ / บันทึก PDF" แทน', 'error');
@@ -3000,11 +2915,7 @@ async function submitEntry(){
       S.mode = 'daily'; S.anchor = d;
       document.querySelectorAll('.tabbtn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'daily'));
       renderPicker(); render();
-      // บอกจำนวนช่องที่แก้ด้วย เพื่อให้ผู้ใช้ยันกับที่ตั้งใจไว้ได้ทันทีว่าไม่ได้แก้เกิน
-      const n = (payload.only ? payload.only.length : 0);
-      toast(payload.mode === 'edit'
-        ? 'แก้ไขข้อมูลวันที่ ' + thShort(d) + ' เรียบร้อยแล้ว (' + nf(n) + ' ช่อง) — บันทึกประวัติแล้ว'
-        : 'บันทึกข้อมูลวันที่ ' + thShort(d) + ' เรียบร้อยแล้ว');
+      toast((payload.mode === 'edit' ? 'แก้ไขข้อมูลวันที่ ' : 'บันทึกข้อมูลวันที่ ') + thShort(d) + ' เรียบร้อยแล้ว');
     } else {
       toast('ส่งข้อมูลแล้ว แต่ยังตรวจไม่พบในชีต — กรุณากดรีเฟรชอีกครั้งเพื่อยืนยัน', 'warn');
     }
@@ -3188,14 +3099,12 @@ function bindEvents(){
   const setDocType = (t) => {
     S.docType = t;
     // สลับแค่คลาส doctype-on — สีทั้งหมดคุมจาก CSS จึงเปลี่ยนตามธีมได้เอง
-    $('docTypeFull').classList.toggle('doctype-on',  t === 'full');
-    $('docTypeBrief').classList.toggle('doctype-on', t === 'brief');
-    $('docTypeFin').classList.toggle('doctype-on',   t === 'fin');
+    $('docTypeFull').classList.toggle('doctype-on', t === 'full');
+    $('docTypeFin').classList.toggle('doctype-on',  t === 'fin');
     buildDoc();
   };
-  $('docTypeFull').onclick  = safe('docType', () => setDocType('full'));
-  $('docTypeBrief').onclick = safe('docType', () => setDocType('brief'));
-  $('docTypeFin').onclick   = safe('docType', () => setDocType('fin'));
+  $('docTypeFull').onclick = safe('docType', () => setDocType('full'));
+  $('docTypeFin').onclick  = safe('docType', () => setDocType('fin'));
 
   // ปิด modal ด้วยปุ่ม Esc และการคลิกพื้นหลัง — ลดโอกาสผู้ใช้ติดค้างในหน้าเอกสาร
   document.addEventListener('keydown', (e) => {
@@ -3222,10 +3131,32 @@ function bindEvents(){
   $('btnCardText').onclick  = safe('copyLine',  copyLine);
   $('btnCardClose').onclick = () => { $('cardModal').classList.add('hidden'); document.body.style.overflow = ''; };
 
+  // ซิงก์ช่องพิมพ์หมายเหตุให้ตรงกับหมายเหตุของใบ (ช่วงข้อมูล) ที่กำลังจะเปิด
+  const syncDocNote = () => {
+    const v = docNoteText();
+    $('docNoteInput').value = v;
+    $('docNoteCount').textContent = v.length + ' / ' + DOC_NOTE_MAX;
+  };
   $('btnDoc').onclick      = safe('openDoc', () => {
     if (!filteredRows().some(r => r.hasData)){ toast('ช่วงเวลาที่เลือกยังไม่มีข้อมูล จึงยังออกใบนำส่งเงินไม่ได้', 'warn'); return; }
+    syncDocNote();
     buildDoc();
     openDocModal(true);
+  });
+  // พิมพ์หมายเหตุ -> เก็บตามเลขที่เอกสาร แล้ววาดใบใหม่ (หน่วง 200ms กันวาดถี่ทุกตัวอักษร)
+  let docNoteTimer = null;
+  $('docNoteInput').addEventListener('input', safe('docNote', () => {
+    const v = $('docNoteInput').value.slice(0, DOC_NOTE_MAX);
+    S.docNotes.set(docNo(), v);
+    $('docNoteCount').textContent = v.length + ' / ' + DOC_NOTE_MAX;
+    clearTimeout(docNoteTimer);
+    docNoteTimer = setTimeout(() => { try{ buildDoc(); }catch(e){ logError('docNote', e); } }, 200);
+  }));
+  $('btnDocNoteClear').onclick = safe('docNoteClear', () => {
+    S.docNotes.delete(docNo());
+    syncDocNote();
+    buildDoc();
+    $('docNoteInput').focus();
   });
   $('btnCloseDoc').onclick = () => openDocModal(false);
   $('btnPrint').onclick    = safe('print', () => window.print());
